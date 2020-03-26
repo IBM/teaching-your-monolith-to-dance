@@ -24,6 +24,7 @@ dojo.declare("depot.AccountTypeFormController",null,
 		var getAccountType = {
 		        url: "jaxrs/Customer/TypeForm",
 		        handleAs: "json",
+		        headers:{"Authorization":"Bearer " + keycloak.token},
 		        load: dojo.hitch(this,this.setAccount),
 		        error:dojo.hitch(this,this.loadAccountTypeError)
 			};

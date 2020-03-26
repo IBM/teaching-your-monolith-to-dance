@@ -1,16 +1,18 @@
 package org.pwte.example.service;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import javax.annotation.Resource;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
@@ -66,6 +68,9 @@ public class CustomerOrderServicesImpl implements CustomerOrderServices {
 				existingOpenOrder.setVersion(newLineItem.getVersion());
 			}
 		}
+		System.out.println("New order id: " + existingOpenOrder.getOrderId());
+	
+
 		BigDecimal amount = product.getPrice().multiply(new BigDecimal(quantity));
 		Set<LineItem> lineItems = existingOpenOrder.getLineitems();
 		if (lineItems == null ) lineItems = new HashSet<LineItem>();
@@ -107,9 +112,7 @@ public class CustomerOrderServicesImpl implements CustomerOrderServices {
 		newOrder.setStatus(Order.Status.OPEN);
 		System.out.println(newOrder.getStatus());
 		newOrder.setTotal(new BigDecimal(0));
-		
 		em.persist(newOrder);
-		
 		customer.setOpenOrder(newOrder);
 		return newOrder;
 	}
@@ -195,9 +198,37 @@ public class CustomerOrderServicesImpl implements CustomerOrderServices {
 	
 	public AbstractCustomer loadCustomer() throws CustomerDoesNotExistException,GeneralPersistenceException {
 		String user = ctx.getCallerPrincipal().getName();
+		Principal p = ctx.getCallerPrincipal();
+
 		Query query = em.createQuery("select c from AbstractCustomer c where c.user = :user");
 		query.setParameter("user", user);
-		return (AbstractCustomer)query.getSingleResult();
+		AbstractCustomer customer = null;
+		try {
+			customer = (AbstractCustomer) query.getSingleResult();			
+		}
+		catch (NoResultException e) {
+			//Customer record does not exist in the app database
+			ResidentialCustomer newCustomer = new ResidentialCustomer();
+			newCustomer.setUser(user);
+			newCustomer.setName(user);
+			if (p instanceof JsonWebToken) {
+				JsonWebToken t = (JsonWebToken)p;
+				String firstName = t.getClaim("given_name");
+				String lastName = t.getClaim("family_name");
+				if (firstName != null && lastName !=null) {
+					newCustomer.setName(firstName + " " + lastName);
+				}
+
+			}
+			em.persist(newCustomer);
+			customer = newCustomer;
+		}
+		
+		if (customer == null) {
+			throw new CustomerDoesNotExistException();
+		}
+		
+		return customer;
 	}
 	/*
 	private AbstractCustomer loadCustomer(int customerId) throws CustomerDoesNotExistException,GeneralPersistenceException {

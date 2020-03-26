@@ -11,6 +11,7 @@ dojo.declare("depot.AccountController",null,
 		var getAccount = {
 	        url: "/CustomerOrderServicesWeb/jaxrs/Customer",
 	        handleAs: "json",
+	        headers:{"Authorization":"Bearer " + keycloak.token},
 	        load: dojo.hitch(this,this.loadAccountSuccess),
 	        error:dojo.hitch(this,this.loadAccountError)
 		};

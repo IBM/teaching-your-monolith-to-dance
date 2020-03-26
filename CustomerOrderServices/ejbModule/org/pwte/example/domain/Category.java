@@ -3,6 +3,8 @@ package org.pwte.example.domain;
 import java.io.Serializable;
 import java.util.Collection;
 
+import javax.json.bind.annotation.JsonbProperty;
+import javax.json.bind.annotation.JsonbTransient;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -12,9 +14,6 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 @Entity
 @NamedQuery(name="top.level.category",query="select c from Category c where c.parent IS NULL")
@@ -40,7 +39,7 @@ public class Category implements Serializable {
 	@ManyToMany(mappedBy="categories",fetch=FetchType.LAZY)
 	private Collection<Product> products;
 	
-	@JsonProperty(value="id")
+	@JsonbProperty(value="id")
 	public int getCategoryID() {
 		return categoryID;
 	}
@@ -54,10 +53,12 @@ public class Category implements Serializable {
 		this.name = name;
 	}
 	
-	@JsonIgnore
+	
+	@JsonbTransient
 	public Category getParent() {
 		return parent;
 	}
+	
 	public void setParent(Category parent) {
 		this.parent = parent;
 	}
@@ -68,10 +69,12 @@ public class Category implements Serializable {
 		this.subCategories = subCategories;
 	}
 	
-	@JsonIgnore
+	
+	@JsonbTransient
 	public Collection<Product> getProducts() {
 		return products;
 	}
+	
 	public void setProducts(Collection<Product> products) {
 		this.products = products;
 	}

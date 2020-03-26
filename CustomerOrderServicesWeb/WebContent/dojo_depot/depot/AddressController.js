@@ -62,7 +62,7 @@ dojo.declare("depot.AddressController", [], {
 		
 		var updateAddress = {
 	        url: "jaxrs/Customer/Address",
-	        headers:{"Content-Type":"application/json"},
+	        headers:{"Content-Type":"application/json", "Authorization":"Bearer " + keycloak.token},
 	        putData:dojo.toJson(dijit.byId("addressForm").get("value")),
 	        load: dojo.hitch(this,this.updateAddressSuccess),
 	        error:dojo.hitch(this,this.updateAddressError)

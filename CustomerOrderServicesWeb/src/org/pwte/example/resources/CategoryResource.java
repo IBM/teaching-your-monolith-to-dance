@@ -3,6 +3,7 @@ package org.pwte.example.resources;
 import java.util.List;
 
 import javax.ejb.EJB;
+import javax.enterprise.context.RequestScoped;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.ws.rs.GET;
@@ -12,12 +13,15 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.eclipse.microprofile.metrics.annotation.*;
+import org.eclipse.microprofile.metrics.*;
 
 import org.pwte.example.domain.Category;
 import org.pwte.example.exception.CategoryDoesNotExist;
 import org.pwte.example.service.ProductSearchService;
 
 @Path("/Category")
+@RequestScoped
 public class CategoryResource 
 {
 	@EJB ProductSearchService productSearch;
@@ -31,6 +35,7 @@ public class CategoryResource
 	
 	@GET
 	@Path("{id}")
+	@Timed(unit=MetricUnits.SECONDS)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Category loadCategory(@PathParam(value="id") int categoryId)
 	{
@@ -43,6 +48,7 @@ public class CategoryResource
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
+	@Counted
 	public List<Category> loadTopLevelCategories()
 	{
 		return productSearch.getTopLevelCategories();

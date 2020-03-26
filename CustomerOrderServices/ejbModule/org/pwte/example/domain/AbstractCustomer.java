@@ -3,6 +3,7 @@ package org.pwte.example.domain;
 import java.io.Serializable;
 import java.util.Set;
 
+import javax.json.bind.annotation.JsonbTransient;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
@@ -10,6 +11,8 @@ import javax.persistence.DiscriminatorType;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
@@ -18,7 +21,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
 
 @Entity
 @Table(name = "CUSTOMER")
@@ -33,6 +35,7 @@ public abstract class AbstractCustomer implements Serializable {
 	}
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "CUSTOMER_ID")
 
 	protected int customerId;
@@ -75,12 +78,12 @@ public abstract class AbstractCustomer implements Serializable {
 		this.address = address;
 	}
 
-	@JsonIgnore
+	@JsonbTransient
 	public int getCustomerId() {
 		return customerId;
 	}
 
-	@JsonIgnore
+	@JsonbTransient
 	public void setCustomerId(int customerId) {
 		this.customerId = customerId;
 	}
@@ -101,12 +104,12 @@ public abstract class AbstractCustomer implements Serializable {
 		this.type = type;
 	}
 
-	@JsonIgnore
+	@JsonbTransient
 	public String getUser() {
 		return user;
 	}
 
-	@JsonIgnore
+	@JsonbTransient
 	public void setUser(String user) {
 		this.user = user;
 	}

@@ -9,6 +9,8 @@ import java.util.Set;
 
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
@@ -37,12 +39,12 @@ import org.pwte.example.exception.InvalidQuantityException;
 import org.pwte.example.exception.OrderModifiedException;
 import org.pwte.example.exception.ProductDoesNotExistException;
 import org.pwte.example.service.CustomerOrderServices;
-
+import org.eclipse.microprofile.metrics.annotation.*;
 import com.ibm.json.java.JSONArray;
 import com.ibm.json.java.JSONObject;
-
 @Path("/Customer")
 @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+@RequestScoped
 public class CustomerOrderResource {
 	CustomerOrderServices customerOrderServices = null;
 	
@@ -58,6 +60,8 @@ public class CustomerOrderResource {
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
+	@Counted
+	@Timed(name = "getCustomer_timed")
 	public Response getCustomer()
 	{
 		try {
@@ -76,6 +80,20 @@ public class CustomerOrderResource {
 			throw new WebApplicationException(e);
 		}
 		
+	}
+	
+	@GET
+	@Path("/Login")
+	public Response getHome()
+	{
+		URI uri = null;
+		try {
+			uri = new URI("../");
+		}
+		catch(Exception e) {
+			
+		}
+		return Response.status(302).location(uri).build();
 	}
 	
 	@PUT
@@ -97,6 +115,9 @@ public class CustomerOrderResource {
 	@Path("/OpenOrder/LineItem")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
+	@Counted
+	@Timed(name = "addLineItem_time")
+	@Metered(name = "addLineItem_metered")
 	public Response addLineItem(LineItem lineItem,@Context HttpHeaders headers)
 	{
 		

@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Collection;
 
+import javax.json.bind.annotation.JsonbProperty;
+import javax.json.bind.annotation.JsonbTransient;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -13,8 +15,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.NamedNativeQuery;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonProperty;
+
 
 @Entity
 @NamedNativeQuery(name="product.by.cat.or.sub",
@@ -49,22 +50,22 @@ public class Product implements Serializable {
 
 	}
 	
-	@JsonIgnore
+	@JsonbTransient
 	public Collection<Category> getCategories() {
 		return categories;
 	}
 	
-	@JsonIgnore
+	@JsonbTransient
 	public void setCategories(Collection<Category> categories) {
 		this.categories = categories;
 	}
 	
-	@JsonProperty(value="id")
+	@JsonbProperty(value="id")
 	public int getProductId() {
 		return productId;
 	}
 	
-	@JsonProperty(value="id")
+	@JsonbProperty(value="id")
 	public void setProductId(int productId) {
 		this.productId = productId;
 	}
@@ -89,12 +90,12 @@ public class Product implements Serializable {
 		this.description = description;
 	}
 	
-	@JsonProperty(value="image")
+	@JsonbProperty(value="image")
 	public String getImagePath() {
 		return imagePath;
 	}
 	
-	@JsonProperty(value="image")
+	@JsonbProperty(value="image")
 	public void setImagePath(String imagePath) {
 		this.imagePath = imagePath;
 	}

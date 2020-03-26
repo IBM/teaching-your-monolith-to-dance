@@ -5,9 +5,12 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Set;
 
+import javax.json.bind.annotation.JsonbTransient;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -18,7 +21,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Version;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
 
 @Entity
 @Table(name="ORDERS")
@@ -32,6 +34,7 @@ public class Order implements Serializable {
 	protected int orderId;
 	protected BigDecimal total;
 	public static enum Status { OPEN, SUBMITTED, SHIPPED, CLOSED }
+	@Enumerated(EnumType.STRING)
 	protected Status status;
 	
 	@Column(name="SUBMIT_TIME")
@@ -47,12 +50,12 @@ public class Order implements Serializable {
 	@Version
 	protected long version;
 	  
-	@JsonIgnore
+	@JsonbTransient
 	public long getVersion() {
 		return version;
 	}
 	
-	@JsonIgnore
+	@JsonbTransient
 	public void setVersion(long version) {
 		this.version = version;
 	}
@@ -63,12 +66,12 @@ public class Order implements Serializable {
 		this.lineitems = lineitmes;
 	}
 	
-	@JsonIgnore
+	@JsonbTransient
 	public AbstractCustomer getCustomer() {
 		return customer;
 	}
 	
-	@JsonIgnore
+	@JsonbTransient
 	public void setCustomer(AbstractCustomer customer) {
 		this.customer = customer;
 	}

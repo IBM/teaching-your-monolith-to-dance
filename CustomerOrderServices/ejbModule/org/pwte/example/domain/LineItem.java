@@ -3,20 +3,21 @@ package org.pwte.example.domain;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
+import javax.json.bind.annotation.JsonbTransient;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.PreRemove;
 import javax.persistence.PreUpdate;
+import javax.persistence.PrimaryKeyJoinColumn;
+import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
 
 @Entity
 @Table(name = "LINE_ITEM")
@@ -26,12 +27,13 @@ public class LineItem implements Serializable {
 	private static final long serialVersionUID = -447939565773238603L;
 
 	@Id
-	@Column(name = "ORDER_ID")
+	@Column(name = "ORDER_ID", updatable=false, insertable=false)
 	private int orderId;
 
 	@Id
-	@Column(name = "PRODUCT_ID")
+	@Column(name = "PRODUCT_ID", updatable=false, insertable=false)
 	private int productId;
+	
 	protected long quantity;
 	protected BigDecimal amount;
 
@@ -86,12 +88,12 @@ public class LineItem implements Serializable {
 		this.product = product;
 	}
 
-	@JsonIgnore
+	@JsonbTransient
 	public Order getOrder() {
 		return order;
 	}
 
-	@JsonIgnore
+	@JsonbTransient
 	public void setOrder(Order order) {
 		this.order = order;
 	}
@@ -135,12 +137,12 @@ public class LineItem implements Serializable {
 		order.setTotal(total);
 	}
 
-	@JsonIgnore
+	@JsonbTransient
 	public void setVersion(long version) {
 		this.version = version;
 	}
 
-	@JsonIgnore
+	@JsonbTransient
 	public long getVersion() {
 		return version;
 	}

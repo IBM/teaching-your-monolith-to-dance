@@ -2,6 +2,8 @@
 <html>
 <head>
 
+ <script src="keycloak.js"></script>
+
 <link rel="stylesheet" type="text/css"
 	href="theme/layout.css">
 	
@@ -12,25 +14,28 @@
 <script type="text/javascript"
 	djconfig="isDebug: false, parseOnLoad: true" src="dojo/dojo/dojo.js"></script>
 <script type="text/javascript">
-dojo.require("dijit.layout.BorderContainer");
-dojo.require("dijit.layout.ContentPane");
-dojo.require("dijit.layout.TabContainer");
-dojo.require("dojox.layout.ContentPane");
-dojo.require("dojo.parser");
 
-
-dojo.registerModulePath("depot","../../dojo_depot/depot");
-dojo.registerModulePath("product","../../product");
-dojo.registerModulePath("orderHistory","../../orderHistory");
-dojo.registerModulePath("account","../../account");
-
-dojo.require("depot.NavigationController");
-var nav = new depot.NavigationController();
-dojo.ready(dojo.hitch(nav,nav.loadedPage));
-
-dojo.require("depot.AccountController");
-var accountController = new depot.AccountController();
-dojo.ready(dojo.hitch(accountController,accountController.loadAccount));
+function loadDojo(){
+	dojo.require("dijit.layout.BorderContainer");
+	dojo.require("dijit.layout.ContentPane");
+	dojo.require("dijit.layout.TabContainer");
+	dojo.require("dojox.layout.ContentPane");
+	dojo.require("dojo.parser");
+	
+	
+	dojo.registerModulePath("depot","../../dojo_depot/depot");
+	dojo.registerModulePath("product","../../product");
+	dojo.registerModulePath("orderHistory","../../orderHistory");
+	dojo.registerModulePath("account","../../account");
+	
+	dojo.require("depot.NavigationController");
+	nav = new depot.NavigationController();
+	dojo.ready(dojo.hitch(nav,nav.loadedPage));
+	
+	dojo.require("depot.AccountController");
+	accountController = new depot.AccountController();
+	dojo.ready(dojo.hitch(accountController,accountController.loadAccount));
+}
 
 </script>
 </head>
@@ -54,6 +59,18 @@ dojo.ready(dojo.hitch(accountController,accountController.loadAccount));
 		</div>
 </div>
 </div>
+    <script>
+        var keycloak = new Keycloak("jaxrs/keycloak/config.json");
+        keycloak.init({
+            onLoad: 'login-required',
+            promiseType: 'native',
+        }).then(function(authenticated) {
+           if (authenticated) {
+        	   loadDojo();
+           }
+        })
+        
+    </script>
 </body>
 </html>
 

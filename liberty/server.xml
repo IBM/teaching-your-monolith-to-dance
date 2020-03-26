@@ -1,45 +1,69 @@
-<server>
-  <featureManager>
-      <feature>appSecurity-2.0</feature>
-      <feature>ldapRegistry-3.0</feature>
-      <feature>localConnector-1.0</feature>
-      <feature>ejbLite-3.1</feature>
-      <feature>jaxrs-1.1</feature>
-      <feature>jdbc-4.1</feature>
-      <feature>jpa-2.0</feature>
-      <feature>jsp-2.3</feature>
-      <feature>servlet-3.1</feature>
-      <feature>monitor-1.0</feature>
-  </featureManager>
+<server description="new server">
 
-  <library id="DB2Lib">
-    <fileset dir="/opt/ibm/wlp/usr/shared/resources/db2" includes="db2jcc4.jar db2jcc_license_cu.jar"/>
-  </library>
+	<!-- Enable features -->
+	<featureManager>
+		<feature>ejbLite-3.2</feature>
+		<feature>localConnector-1.0</feature>
+    	<feature>cdi-2.0</feature>
+		<feature>appSecurity-3.0</feature>
+		<feature>mpHealth-2.1</feature>
+		<feature>jaxrs-2.1</feature>
+		<feature>jpa-2.2</feature>
+		<feature>jdbc-4.2</feature>
+		<feature>transportSecurity-1.0</feature>
+		<feature>jsonb-1.0</feature>
+		<feature>mpOpenAPI-1.1</feature>
+		<feature>mpMetrics-2.0</feature>
+		<feature>mpJwt-1.1</feature>
+		<feature>monitor-1.0</feature>
+	</featureManager>
 
-  <dataSource id="OrderDS" jndiName="jdbc/orderds" type="javax.sql.XADataSource">
-    <jdbcDriver libraryRef="DB2Lib"/>
-    <properties.db2.jcc databaseName="${env.DB2_DBNAME}" password="${env.DB2_PASSWORD}" portNumber="${env.DB2_PORT}" serverName="${env.DB2_HOST}" user="${env.DB2_USER}"/>
-    <connectionManager agedTimeout="0" connectionTimeout="180" maxIdleTime="1800" maxPoolSize="10" minPoolSize="1" reapTime="180"/>
-  </dataSource>
+	<ssl id="defaultSSLConfig" trustDefaultCerts="true"/>
+	<!-- To access this server from a remote client add a host attribute to 
+		the following element, e.g. host="*" -->
+	<httpEndpoint httpPort="-1" httpsPort="9443" id="defaultHttpEndpoint"/>
 
-  <httpEndpoint host="*" httpPort="9080" httpsPort="9443" id="defaultHttpEndpoint">
-    <tcpOptions soReuseAddr="true"/>
-  </httpEndpoint>
+	<!-- Automatically expand WAR files and EAR files -->
+	<applicationManager autoExpand="true"/>
 
-  <keyStore id="defaultKeyStore" password="whodunit"/>
-  <!-- User and group security definitions -->
+	<applicationMonitor updateTrigger="mbean"/>
+	<application id="customerOrderServicesApp" location="CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear" name="CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear" type="ear">
+		<classloader apiTypeVisibility="spec, ibm-api, third-party,stable"/>
+		<application-bnd>
+			<security-role name="SecureShopper">
+				<special-subject type="ALL_AUTHENTICATED_USERS"></special-subject>
+			</security-role>
+		</application-bnd>
+	</application>
 
-  <basicRegistry id="basic" realm="customRealm">
-   	<user name="rbarcia" password="bl0wfish"/>
-   	<group name="SecureShopper">
-      <member name="rbarcia"/>
-     </group>
-  </basicRegistry>
+	<library id="DB2Lib">
+		<fileset dir="${shared.resource.dir}/db2" includes="db2jcc4.jar db2jcc_license_cu.jar"/>
+	</library>
 
-  <applicationMonitor updateTrigger="mbean"/>
-
-  <application id="customerOrderServicesApp" name="CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear" type="ear" location="CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear">
-    <classloader apiTypeVisibility="spec, ibm-api, third-party" />
-  </application>
-
+	<dataSource id="OrderDS" jndiName="jdbc/orderds" type="javax.sql.XADataSource">
+		<jdbcDriver libraryRef="DB2Lib"/>
+		<properties.db2.jcc databaseName="ORDERDB" password="${DB_PASSWORD}" portNumber="${DB_PORT}" serverName="${DB_HOST}" user="${DB_USER}"/>
+		<connectionManager agedTimeout="-1" connectionTimeout="180" maxIdleTime="1800" maxPoolSize="10" minPoolSize="1" reapTime="180"/>
+	</dataSource>	
+	
+	
+	<mpJwt id="keycloak"
+		jwksUri="${JWT_CERT_URI}"
+		issuer="${JWT_ISSUER}" userNameAttribute="preferred_username">
+		<audiences>account</audiences>
+		<authFilter>
+			<requestUrl urlPattern="jaxrs"></requestUrl>
+		</authFilter>
+	</mpJwt>
+	
+	<variable name="DB_HOST" defaultValue="localhost"/>
+	<variable name="DB_USER" defaultValue="db2inst1"/>
+	<variable name="DB_PASSWORD" defaultValue="db2inst1"/>
+	<variable name="DB_HOST" defaultValue="localhost"/>
+	<variable name="DB_PORT" defaultValue="50000"/>
+	<variable name="JWT_CERT_URI" defaultValue=""/>
+	<variable name="JWT_ISSUER" defaultValue=""/>
+	
+	
+	<quickStartSecurity userName="admin" userPassword="admin"></quickStartSecurity>
 </server>

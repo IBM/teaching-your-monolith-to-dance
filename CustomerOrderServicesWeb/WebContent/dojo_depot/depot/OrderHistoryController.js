@@ -28,6 +28,7 @@ dojo.declare("depot.OrderHistoryController",null,
 		var getOrdersXhr = {
 				url: "/CustomerOrderServicesWeb/jaxrs/Customer/Orders",
 				handleAs: "json",
+		        headers:{"Authorization":"Bearer " + keycloak.token},
 				load: dojo.hitch(this,this.loadOrdersSuccess),
 				error:dojo.hitch(this,this.loadOrdersError)
 			};
