@@ -4,9 +4,8 @@
 	<featureManager>
 		<feature>ejbLite-3.2</feature>
 		<feature>localConnector-1.0</feature>
-    	<feature>cdi-2.0</feature>
+		<feature>cdi-2.0</feature>
 		<feature>appSecurity-3.0</feature>
-		<feature>mpHealth-2.1</feature>
 		<feature>jaxrs-2.1</feature>
 		<feature>jpa-2.2</feature>
 		<feature>jdbc-4.2</feature>
@@ -14,14 +13,16 @@
 		<feature>jsonb-1.0</feature>
 		<feature>mpOpenAPI-1.1</feature>
 		<feature>mpMetrics-2.0</feature>
+		<feature>mpHealth-2.1</feature>
 		<feature>mpJwt-1.1</feature>
 		<feature>monitor-1.0</feature>
 	</featureManager>
 
-	<ssl id="defaultSSLConfig" trustDefaultCerts="true"/>
 	<!-- To access this server from a remote client add a host attribute to 
 		the following element, e.g. host="*" -->
-	<httpEndpoint httpPort="-1" httpsPort="9443" id="defaultHttpEndpoint"/>
+	<httpEndpoint httpPort="-1" httpsPort="9443" accessLoggingRef="accessLogging" id="defaultHttpEndpoint"/>
+
+	<httpAccessLogging id="accessLogging"/>
 
 	<!-- Automatically expand WAR files and EAR files -->
 	<applicationManager autoExpand="true"/>
@@ -63,7 +64,6 @@
 	<variable name="DB_PORT" defaultValue="50000"/>
 	<variable name="JWT_CERT_URI" defaultValue=""/>
 	<variable name="JWT_ISSUER" defaultValue=""/>
-	
 	
 	<quickStartSecurity userName="admin" userPassword="admin"></quickStartSecurity>
 </server>
