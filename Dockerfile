@@ -1,13 +1,13 @@
 FROM ibmcom/websphere-traditional:9.0.5.0-ubi
 
-COPY config/PASSWORD /tmp/PASSWORD
+COPY --chown=1001:0 resources/db2/ /opt/IBM/db2drivers/
 
-COPY resources/db2/ /opt/IBM/db2drivers/
+COPY --chown=1001:0 config/PASSWORD /tmp/PASSWORD
 
-COPY config/cosConfig.py /work/config/
+COPY --chown=1001:0 config/cosConfig.py /work/config/
 
-COPY config/app-update.props  /work/config/app-update.props
+COPY --chown=1001:0 config/app-update.props  /work/config/
 
-COPY app/CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear /work/apps/CustomerOrderServicesApp.ear
+COPY --chown=1001:0 app/CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear /work/apps/CustomerOrderServicesApp.ear
 
 RUN /work/configure.sh
