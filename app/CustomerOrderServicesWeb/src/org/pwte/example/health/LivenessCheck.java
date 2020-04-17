@@ -23,6 +23,7 @@ public class LivenessCheck implements HealthCheck {
 			for (ThreadInfo ti : threadInfos) {
 				double seconds = ti.getBlockedTime() / 1000.0;
 				if (seconds > 60) {
+					System.out.println("Liveness check - blocked " + seconds + " seconds on thread " + ti.toString());
 					return HealthCheckResponse.named("Liveness").down().build();
 				}
 			}

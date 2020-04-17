@@ -29,13 +29,13 @@ public class ReadinessCheck implements HealthCheck {
 			con = (HttpURLConnection) url.openConnection();
 			con.setRequestMethod("GET");
 			int status = con.getResponseCode();
-			System.out.println("Status:" + status);
 			if (status != 200) {
+				System.out.println("Readiness check - status:" + status);
 				return HealthCheckResponse.named("Readiness").down().build();
 			}
 
 		} catch (IOException e) {
-			System.out.println("Exception:" + e);
+			System.out.println("Readiness check - exception:" + e);
 			return HealthCheckResponse.named("Readiness").down().build();
 
 		}
