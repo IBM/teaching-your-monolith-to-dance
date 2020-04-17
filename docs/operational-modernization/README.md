@@ -71,7 +71,7 @@ You should create a new image which adds a single application and the correspond
 
 We started with the `wsadmin` script that is used by existing Customer Order Services running on-prem. Since this is a legacy application, it runs on older frameworks: most notably it uses JPA 2.0 and JAX-RS 1.1. These are not the default in WAS 9 (as they are in WAS8.5.5), but they are supported. To avoid making application code changes at this time, we modified these settings in the scripts.
 
-For example, we added the following to configure older JAX-RS specification:
+For example, older JAX-RS specification is configured by adding:
 ```
 AdminTask.modifyJaxrsProvider(Server, '[ -provider 1.1]')
 ```
@@ -106,15 +106,15 @@ Let's review the contents of the [Dockerfile](https://github.com/IBM/teaching-yo
 ```dockerfile
 FROM ibmcom/websphere-traditional:9.0.5.0-ubi
 
-COPY config/PASSWORD /tmp/PASSWORD
+COPY --chown=1001:0 config/PASSWORD /tmp/PASSWORD
 
-COPY resources/db2/ /opt/IBM/db2drivers/
+COPY --chown=1001:0 resources/db2/ /opt/IBM/db2drivers/
 
-COPY config/cosConfig.py /work/config/
+COPY --chown=1001:0 config/cosConfig.py /work/config/
 
-COPY config/app-update.props  /work/config/app-update.props
+COPY --chown=1001:0 config/app-update.props  /work/config/app-update.props
 
-COPY app/CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear /work/apps/CustomerOrderServicesApp.ear
+COPY --chown=1001:0 app/CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear /work/apps/CustomerOrderServicesApp.ear
 
 RUN /work/configure.sh
 ```
@@ -145,7 +145,7 @@ It instructs docker to build the image following the instructions in the Dockerf
 
 A specific name to tag the built image with is also specified. The value `image-registry.openshift-image-registry.svc:5000` in the tag is the address of the internal image registry provided by OpenShift. The registry is accessible within the cluster using the `Service`. Format of a Service address is: _name_._namespace_.svc
 
-5000 is the port, which is followed by a namespace and image name to push the image to (within the registry).
+5000 is the port, which is followed by namespace and name for the image. Later when we push the image to to push the built image to (within the registry).
 
 [comment]: <> (Optional: Show how to access the image registry service using OpenShift console)
 
@@ -203,15 +203,15 @@ Customer Order Services application uses DB2 as its database. You can connect to
 
 Operators are a method of packaging, deploying, and managing a Kubernetes application. Conceptually, Operators take human operational knowledge and encode it into software that is more easily shared with consumers. Essentially, Operators are pieces of software that ease the operational complexity of running another piece of software. They act like an extension of the software vendor’s engineering team, watching over a Kubernetes environment (such as OpenShift Container Platform) and using its current state to make decisions in real time.
 
-We'll use [Runtime Component Operator](https://github.com/application-stacks/runtime-component-operator#runtime-component-operator) to deploy the application. This generic Operator is capable of deploying any application image with consistent, production-grade Quality of service (QoS).
+We'll use [Appsody Operator](https://github.com/appsody/appsody-operator/blob/master/doc/user-guide.md) to deploy the application. Appsody Operator is capable of deploying any application image with consistent, production-grade Quality of service (QoS).
 
-[comment]: <> (Explain what an operator is and what RC operator does specifically)
+[comment]: <> (Explain what an operator is and what Appsody Operator does specifically)
 
-We'll use the following `RuntimeComponent` custom resource (CR), to deploy the Customer Order Services application:
+We'll use the following `AppsodyApplication` custom resource (CR), to deploy the Customer Order Services application:
 
   ```yaml
-  apiVersion: app.stacks/v1beta1
-  kind: RuntimeComponent
+  apiVersion: appsody.dev/v1beta1
+  kind: AppsodyApplication
   metadata:
     name: cos-was
     namespace: apps-was
@@ -238,8 +238,8 @@ We'll use the following `RuntimeComponent` custom resource (CR), to deploy the C
       insecureEdgeTerminationPolicy: Redirect
   ```
 
-  - The `apiVersion` and the `kind` specifies the custom resource to create. `RuntimeComponent` in this case.
-  - The metadata specifies a name for the instance of `RuntimeComponent` custom resource (CR) and the namespace to deploy to.
+  - The `apiVersion` and the `kind` specifies the custom resource to create. `AppsodyApplication` in this case.
+  - The metadata specifies a name for the instance of `AppsodyApplication` custom resource (CR) and the namespace to deploy to.
   - The image you pushed to internal registry is specified for `applicationImage` parameter.
   - The port for service is specified as 9080.
   - Readiness probe specifies when the application, running inside the pod, is ready to accept traffic. Traffic will not be sent to it unless it's in `Ready` state.
@@ -256,10 +256,10 @@ We'll use the following `RuntimeComponent` custom resource (CR), to deploy the C
 
 1. In OpenShift console, from the panel on left-side, click on **Operators** and then **Installed Operators**.
 1. From the `Project` drop down menu, select `apps-was`. 
-1. You'll see `Runtime Component Operator` on the list. From the `Provided APIs` column, click on `Runtime Component`.
-1. Click on `Create RuntimeComponent` button.
+1. You'll see `Appsody Operator` on the list. From the `Provided APIs` column, click on `Appsody Application`.
+1. Click on `Create AppsodyApplication` button.
 1. Delete the default template. 
-1. Copy and paste the above `RuntimeComponent` custom resource (CR).
+1. Copy and paste the above `AppsodyApplication` custom resource (CR).
 1. Click on `Create` button.
 1. Click on `cos-was` from the list. 
 1. Navigate down to `Conditions` section and wait for `Reconciled` type to display `True` in Status column.

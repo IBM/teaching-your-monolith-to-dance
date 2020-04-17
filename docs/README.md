@@ -6,7 +6,7 @@ There are several approaches to application modernization and provided are key r
 
 ### Operational Modernization
 
-* Repackage the application to deploy within a container but maintaining a monolith application without changes to the application or runtime. This solution uses Runtime Component Operator to deploy and manage the containarized application. 
+* Repackage the application to deploy within a container but maintaining a monolith application without changes to the application or runtime. This solution uses Appsody Operator to deploy and manage the containarized application. 
 
 ### Runtime Modernization
 

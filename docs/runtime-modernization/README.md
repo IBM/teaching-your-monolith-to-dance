@@ -249,7 +249,7 @@ You've completed the pre-requisite steps for deploying the application.
 
 ### Open Liberty Operator
 
-We'll use [Open Liberty Operator](https://github.com/OpenLiberty/open-liberty-operator/blob/master/doc/user-guide.md#open-liberty-operator), available as part of Cloud Pak for Applications, to deploy the application. Open Liberty Operator is based on the Runtime Component Operator you previously used and provides additional capabilities for Open Liberty runtime, such as Day-2 operations.
+We'll use [Open Liberty Operator](https://github.com/OpenLiberty/open-liberty-operator/blob/master/doc/user-guide.md#open-liberty-operator), available as part of Cloud Pak for Applications, to deploy the application. Open Liberty Operator is based on the Appsody Operator you previously used and provides additional capabilities for Open Liberty runtime, such as Day-2 operations.
 
 Use the following `OpenLibertyApplication` custom resource (CR), to deploy the Customer Order Services application.
 
@@ -318,7 +318,7 @@ spec:
       app-monitoring: 'true'
 ```
 
-- Notice that the parameters are similar to the `RuntimeComponent` custom resource (CR) you used in the previous section. That's because `OpenLibertyApplication` is based on it, but adds additional Open Liberty specific capabilities (Day-2 operations, single sign-on, etc). 
+- Notice that the parameters are similar to the `AppsodyApplication` custom resource (CR) you used in the previous section. That's because `OpenLibertyApplication` is based on it, but adds additional Open Liberty specific capabilities (Day-2 operations, single sign-on, etc). 
 - The application image you earlier pushed to image registry is specified for `applicationImage` parameter.
 - MicroProfile Health endpoints `/health/ready` and `/health/live` are used for readiness and liveness probes.
 - Secured service and route are configured with necessary certificates.
