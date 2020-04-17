@@ -1,9 +1,9 @@
 
 ## Next Steps
 
-  - Review the detailed step-by-steps [instructions](liberty/extra/liberty-analyze.md) on how [IBM Cloud Transformation Advisor](https://www.ibm.com/cloud/garage/practices/learn/ibm-transformation-advisor) was used to analyze existing Customer Order Services application (running in WebSphere ND environment) to move to Liberty in container. Try Transformation Advisor with one of your applications.
+  - Review the detailed step-by-steps [instructions](liberty/extras/liberty-analyze.md) on how [IBM Cloud Transformation Advisor](https://www.ibm.com/cloud/garage/practices/learn/ibm-transformation-advisor) was used to analyze existing Customer Order Services application (running in WebSphere ND environment) to move to Liberty in container. Try Transformation Advisor with one of your applications.
 
-  - Review the detailed step-by-steps [instructions](was90/extra/tWAS-analyze.md) on how [IBM Cloud Transformation Advisor](https://www.ibm.com/cloud/garage/practices/learn/ibm-transformation-advisor) was used to analyze existing Customer Order Services application (running in WebSphere ND environment) to move to traditional WAS Base in container.
+  - Review the detailed step-by-steps [instructions](was90/extras/tWAS-analyze.md) on how [IBM Cloud Transformation Advisor](https://www.ibm.com/cloud/garage/practices/learn/ibm-transformation-advisor) was used to analyze existing Customer Order Services application (running in WebSphere ND environment) to move to traditional WAS Base in container.
 
   - Learn more about [IBM Cloud Pak for Applications](https://www.ibm.com/ca-en/cloud/cloud-pak-for-applications). Move from monolithic to microservices with DevOps methodologies and modernization toolkits. Modernize existing apps and build new cloud-native apps.
 

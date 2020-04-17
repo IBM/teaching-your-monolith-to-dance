@@ -14,7 +14,7 @@ As organizations modernize to cloud platforms, new technologies and methodologie
 
   The diagram below shows the high level decision flow where IBM Cloud Transformation Advisor is used to analyze existing assets and a decision is made to not make code changes to the application and use the traditional WebSphere container as the target runtime.
 
-  ![decision flow](extra/images/tWASflow.jpg)
+  ![decision flow](extras/images/tWASflow.jpg)
 
 This repository holds a solution that is the result of an **operational modernization** for an existing WebSphere Java EE application that was moved from WebSphere ND v8.5.5 to the traditional WebSphere Base v9 container and is deployed by the IBM CloudPak for Applications to RedHat OpenShift.
 
@@ -38,7 +38,7 @@ In this workshop, we'll use **Customer Order Services** application as an exampl
 
 3. Uploaded the results of the data collection to IBM Cloud Transformation Advisor. A screenshot of the analysis is shown below:
 
-    ![tWAS](extra/images/tWAS-analyze/analysis2.jpg)
+    ![tWAS](extras/images/tWAS-analyze/analysis2.jpg)
 
 4. Analyzed the **Detailed Migration Analysis Report**. In summary, no code changes are required to move this application to the traditional WebSphere Base v9 runtime and the decision was to proceed with the operational modernization.
 
@@ -106,13 +106,13 @@ Let's review the contents of the [Dockerfile](https://github.com/IBM/teaching-yo
 ```dockerfile
 FROM ibmcom/websphere-traditional:9.0.5.0-ubi
 
-COPY --chown=1001:0 config/PASSWORD /tmp/PASSWORD
-
 COPY --chown=1001:0 resources/db2/ /opt/IBM/db2drivers/
+
+COPY --chown=1001:0 config/PASSWORD /tmp/PASSWORD
 
 COPY --chown=1001:0 config/cosConfig.py /work/config/
 
-COPY --chown=1001:0 config/app-update.props  /work/config/app-update.props
+COPY --chown=1001:0 config/app-update.props  /work/config/
 
 COPY --chown=1001:0 app/CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear /work/apps/CustomerOrderServicesApp.ear
 
@@ -121,9 +121,9 @@ RUN /work/configure.sh
 
 - The base image for our application image is `ibmcom/websphere-traditional`, which is the [official image](https://github.com/WASdev/ci.docker.websphere-traditional) for traditional WAS Base in container. The tag `9.0.5.0-ubi` indicates the version of WAS and that this image is based on Red Hat's Universal Base Image (UBI). We recommend using UBI images.
 
-- Specify a password for the wsadmin user at `/tmp/PASSWORD`. This is optional. A password will be automatically generated if one is not provided. This password can be used to login to Admin Console (for debugging purposes only).
-
 - We need to copy everything that the application needs into the container. So we copy the db2 drivers which are referenced in the wsadmin jython script.
+
+- Specify a password for the wsadmin user at `/tmp/PASSWORD`. This is optional. A password will be automatically generated if one is not provided. This password can be used to login to Admin Console (should be for debugging purposes only).
 
 - We copy `cosConfig.py` jython script and the `app-update.props` file into `/work/config/` folder, so they are run during container creation.
 
@@ -247,8 +247,8 @@ We'll use the following `AppsodyApplication` custom resource (CR), to deploy the
   - For probes, we are using the main page `/CustomerOrderServicesWeb/index.html`, which is not the best indication that the app is fully functional. Since the application was not modified, it's the best option. 
   - The settings on probes are:
     - `periodSeconds`: how often (in seconds) to perform the probe
-    - `failureThreshold` - When a Pod starts and the probe fails, Kubernetes will try failureThreshold times before giving up. Giving up in case of liveness probe means restarting the container. In case of readiness probe the Pod will be marked Unready.
-    - `initialDelaySeconds`: Number of seconds after the container has started before probes is initiated.
+    - `failureThreshold` - When a Pod starts and the probe fails, Kubernetes will try this many times before giving up. Giving up in case of liveness probe means restarting the container - in hope that the problem will be resolved when restarted. In case of readiness probe the Pod will be marked _unready_. Kubernetes will not send traffic to Pod unless it's marked _ready_.
+    - `initialDelaySeconds`: Number of seconds after the container has started before probes is initiated. Allows the application to complete initial setups.
   - The `expose` field is a simple toggle to enable Route (proxy) - to expose your application outside the cluster. 
   - The termination policy specified under `route` configures a secured route.
 
@@ -279,7 +279,7 @@ You containerized and deployed the application to RedHat OpenShift.
 1. Click on the Route URL
 1. Add `/CustomerOrderServicesWeb` to the end of the URL in the browser to access the application
 
-    ![Dev Running](extra/images/deployed-app.jpg)
+    ![Dev Running](extras/images/deployed-app.jpg)
 
 1. Log in to the application. Enter `skywalker` for username and `force` for password.
 

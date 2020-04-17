@@ -10,7 +10,7 @@ However, Liberty doesn't support all of the legacy Java EE and WebSphere proprie
 
   The diagram below shows the high level decision flow where IBM Cloud Transformation Advisor is used to analyze existing assets and a decision is made to move the monolithic application to the Liberty container.
 
-  ![Liberty flow](extra/images/libertyflow.jpg)
+  ![Liberty flow](extras/images/libertyflow.jpg)
 
 This repository holds a solution that is the result of a **runtime modernization** for an existing WebSphere Java EE application that was moved from WebSphere ND v8.5.5 to Liberty and deployed by the IBM CloudPak for Applications to RedHat OpenShift.
 
@@ -34,13 +34,13 @@ As before, [IBM Cloud Transformation Advisor](https://www.ibm.com/cloud/garage/p
 
 3. Uploaded the results of the data collection to IBM Cloud Transformation Advisor. A screenshot of the analysis is shown below:
 
-    ![Liberty analysis](extra/images/liberty-analyze/analysis1a.jpg)
+    ![Liberty analysis](extras/images/liberty-analyze/analysis1a.jpg)
 
 - In the case of the **CustomerOrderServicesApp.ear** application, IBM Cloud Transformation Advisor has determined that the migration to Liberty on Private Cloud is of **Moderate** complexity and that there are two **Severe Issues** that have been detected.
 
 - Drilling down in to **Detailed Migration Analysis Report** that is part of the application analysis, it is apparent that IBM Cloud Transformation Advisor has detected that there are issues with lookups for Enterprise JavaBeans and with accessing the Apache Wink APIs.
 
-  ![JPA](extra/images/liberty-analyze/severe.jpg)
+  ![JPA](extras/images/liberty-analyze/severe.jpg)
 
 - **Behavior change on lookups for Enterprise JavaBeans** In Liberty, EJB components are not bound to a server root Java Naming and Directory Interface (JNDI) namespace as they are in WebSphere Application Server traditional. The fix for this is to change the three classes that use `ejblocal` to use the correct URL for Liberty
 
@@ -76,7 +76,7 @@ The **build** phase made changes to source code and created the Liberty configur
 
 - Made the simple code changes required for the EJB lookups which were recommended by IBM Cloud Transformation Advisor. The three Java classes that should be modified to look up Enterprise JavaBeans differently are shown in the detailed analysis view of IBM Cloud Transformation Advisor:
 
-  ![Analysis](extra/images/analysis.jpg)
+  ![Analysis](extras/images/analysis.jpg)
 
 - Below is an example of the code changes required for one of the three Java classes. The `org.pwte.example.resources.CategoryResource.java` is changed from using `ejblocal` as shown below:
 
@@ -134,7 +134,7 @@ The **build** phase made changes to source code and created the Liberty configur
 
   - Then we run `/configure.sh` which will grow image to be fit-for-purpose.
 
-Each instruction in the Dockerfile is a layer and each layer is cached. You should always specify the volatile artifacts towards the end.
+  Each instruction in the Dockerfile is a layer and each layer is cached. You should always specify the volatile artifacts towards the end.
 
 --------
 
@@ -217,6 +217,7 @@ kind: Secret
 apiVersion: v1
 metadata:
   name: db-creds
+  namespace: apps
 data:
   DB_PASSWORD: ZGIyaW5zdDE=
   DB_USER: ZGIyaW5zdDE=
@@ -229,8 +230,8 @@ Similarly, create a secret for metrics. Click on the `+` button, from the top pa
 kind: Secret
 apiVersion: v1
 metadata:
-  name: metrics-secret
-  namespace: apps-liberty
+  name: liberty-creds
+  namespace: apps
 stringData:
   password: admin
   username: admin
@@ -241,7 +242,7 @@ Note that the first `Secret` provides the credentials in base64 encoded format u
 
 In OpenShift console, from the panel on left-side, click on **Workloads** and then **Secrets**.
 
-Select `apps` from the _Project_ list. Locate the secret named `metrics-secret` from the list and click on it. Click on the `YAML` tab. The `data` field should contain the credentials in encoded form.
+Select `apps` from the _Project_ list. Locate the secret named `liberty-creds` from the list and click on it. Click on the `YAML` tab. The `data` field should contain the credentials in encoded form.
 
 As anyone can decode the credentials, administrators should ensure that only autenticated users have access to `Secrets` using Role-based access control (RBAC).
 
@@ -258,6 +259,7 @@ apiVersion: openliberty.io/v1beta1
 kind: OpenLibertyApplication
 metadata:
   name: cos
+  namespace: apps
 spec:
   applicationImage: 'image-registry.openshift-image-registry.svc:5000/apps/cos'
   pullPolicy: Always
@@ -289,13 +291,13 @@ spec:
       value: cos_app
     - name: SSO_URI
       value: >-
-        Enter_your_keycloak_route_url/auth/
+        Enter_your_keycloak_route_url_here/auth/
     - name: JWT_ISSUER
       value: >-
-        Enter_your_keycloak_route_url/auth/realms/Galaxy
-    - name: JWT_CERT_URI
+        Enter_your_keycloak_route_url_here/auth/realms/Galaxy
+    - name: JWT_JWKS_URI
       value: >-
-        Enter_your_keycloak_route_url/auth/realms/Galaxy/protocol/openid-connect/certs
+        Enter_your_keycloak_route_url_here/auth/realms/Galaxy/protocol/openid-connect/certs
     - name: DB_HOST
       value: cos-db-liberty.db.svc
   envFrom:
@@ -306,10 +308,10 @@ spec:
       - basicAuth:
           password:
             key: password
-            name: metrics-secret
+            name: liberty-creds
           username:
             key: username
-            name: metrics-secret
+            name: liberty-creds
         interval: 5s
         scheme: HTTPS
         tlsConfig:
@@ -318,12 +320,12 @@ spec:
       app-monitoring: 'true'
 ```
 
-- Notice that the parameters are similar to the `AppsodyApplication` custom resource (CR) you used in the previous section. That's because `OpenLibertyApplication` is based on it, but adds additional Open Liberty specific capabilities (Day-2 operations, single sign-on, etc). 
+- Notice that the parameters are similar to the `AppsodyApplication` custom resource (CR) you used in the previous section. `OpenLibertyApplication` provides all capabilities that Appsody provides in addition to Open Liberty specific capabilities (day-2 operations, single sign-on). 
 - The application image you earlier pushed to image registry is specified for `applicationImage` parameter.
 - MicroProfile Health endpoints `/health/ready` and `/health/live` are used for readiness and liveness probes.
 - Secured service and route are configured with necessary certificates.
 - Environment variables have been defined to be passed on to the running container. It specifies the information for the Keycloak client you setup previously. The host of the database is specified using it's Service address and its credentials are passed in using the _Secret_ `db-creds` you created earlier. 
-- Enabled application monitoring so that Prometheus can scrape the information provided at MicroProfile Metric's `/metrics` endpoint from Liberty. The `/metrics` endpoint is protected, hence the credentials are provided using the _Secret_ `metrics-secret` you created earlier.
+- Enabled application monitoring so that Prometheus can scrape the information provided at MicroProfile Metric's `/metrics` endpoint from Liberty. The `/metrics` endpoint is protected, hence the credentials are provided using the _Secret_ `liberty-creds` you created earlier.
 
 
 ### Deploy application
@@ -333,7 +335,7 @@ spec:
 1. You should see `Open Liberty Operator` on the list. From the `Provided APIs` column, click on `Open Liberty Application`.
 1. Click on `Create OpenLibertyApplication` button.
 1. Delete the default template. Copy and paste the above `OpenLibertyApplication` custom resource (CR)
-1. Under ENV variables, replace the 3 instances of `Enter_your_keycloak_route_url` with the Route URL of Keycloak in your cluster. Ensure that there isn't an extra `/` character before `/auth`
+1. Under ENV variables, replace the 3 instances of `Enter_your_keycloak_route_url_here` with the Route URL of Keycloak in your cluster. Ensure that there isn't an extra `/` character before `/auth`
 1. Click on `Create` button.
 1. Click on `cos` from the list. 
 1. Navigate down to `Conditions` section and wait for `Reconciled` type to display `True` in Status column. This means Open Liberty Operator had processed the configurations you specified.
