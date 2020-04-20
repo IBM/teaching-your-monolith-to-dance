@@ -1,4 +1,4 @@
-# traditional WebSphere - Analyze
+# Traditional WebSphere - Analyze
 This section covers how to use [IBM Cloud Transformation Advisor](https://www.ibm.com/cloud/garage/practices/learn/ibm-transformation-advisor) to analyze an existing traditional WebSphere application. For this scenario the traditional WebSphere Application Server runtime is chosen as the target runtime and the intention is to migrate this application without code changes. Migrating to the containerized version of traditional WebSphere Application Server will prepare the organization for:
 
 - moving workloads to the cloud.

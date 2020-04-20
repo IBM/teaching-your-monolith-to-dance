@@ -1,6 +1,6 @@
 # Login to OpenShift using web terminal
 
-1. If you don't already have the web terminal opened, then follow the steps [here](web-terminal.md) to access it.
+1. Follow the steps [here](web-terminal.md) to access the web terminal. If you already have the web terminal opened, then use that.
 
 1. From the Openshift console, click on the twisty next to your login name and select `Copy Login Command`.
 

@@ -48,9 +48,9 @@ In this workshop, we'll use **Customer Order Services** application as an exampl
 
 In this section, you'll learn how to build a Docker image for Customer Order Services application running on traditional WebSphere Base v9.
 
-Building this image could take around ~10 minutes (since the image is ~2GB and starting/stopping the WAS server as part of the build process takes few minutes). So let's kick that process off and then come back to learn what you did. Hopefully, the image will be built by the time you complete this section.
+Building this image could take around ~8 minutes (since the image is around 2GB and starting/stopping the WAS server as part of the build process takes few minutes). So let's kick that process off and then come back to learn what you did. Hopefully, the image will be built by the time you complete this section.
 
-Follow the instructions [here](../common/web-terminal.md) to login to OpenShift cluster via the web terminal.
+Follow the instructions [here](../common/oc-login.md) to login to OpenShift cluster via the web terminal.
 
 Clone the GitHub repo with the lab artifacts. Run the following commands on your web terminal:
 ```
@@ -121,7 +121,9 @@ RUN /work/configure.sh
 
 - The base image for our application image is `ibmcom/websphere-traditional`, which is the [official image](https://github.com/WASdev/ci.docker.websphere-traditional) for traditional WAS Base in container. The tag `9.0.5.0-ubi` indicates the version of WAS and that this image is based on Red Hat's Universal Base Image (UBI). We recommend using UBI images.
 
-- We need to copy everything that the application needs into the container. So we copy the db2 drivers which are referenced in the wsadmin jython script.
+- For security, traditional WebSphere Base containers run as non-root. This is infact a requirement for running certified containers in OpenShift. The `COPY` instruction by default copies as root. So change user and group using `--chown=1001:0` command.
+
+- We need to copy everything that the application needs into the container. So we copy the db2 drivers which are referenced in the wsadmin jython script. 
 
 - Specify a password for the wsadmin user at `/tmp/PASSWORD`. This is optional. A password will be automatically generated if one is not provided. This password can be used to login to Admin Console (should be for debugging purposes only).
 
@@ -143,9 +145,9 @@ docker build --tag image-registry.openshift-image-registry.svc:5000/apps-was/cos
 
 It instructs docker to build the image following the instructions in the Dockerfile in current directory (indicated by the `"."` at the end).
 
-A specific name to tag the built image with is also specified. The value `image-registry.openshift-image-registry.svc:5000` in the tag is the address of the internal image registry provided by OpenShift. The registry is accessible within the cluster using the `Service`. Format of a Service address is: _name_._namespace_.svc
+A specific name to tag the built image with is also specified. The value `image-registry.openshift-image-registry.svc:5000` in the tag is the default address of the internal image registry provided by OpenShift. Image registry is a content server that can store and serve container images. The registry is accessible within the cluster using the `Service`. Note the format of a Service address: _name_._namespace_._svc_. So in this case, the image registry is named `image-registry` and it's in namespace `openshift-image-registry`.
 
-5000 is the port, which is followed by namespace and name for the image. Later when we push the image to to push the built image to (within the registry).
+5000 is the port, which is followed by namespace and name for the image. Later when we push the image to OpenShift's internal image registry, we'll refer to the image by the same values.
 
 [comment]: <> (Optional: Show how to access the image registry service using OpenShift console)
 
@@ -182,13 +184,31 @@ docker login -u openshift -p $(oc whoami -t) image-registry.openshift-image-regi
 
 [comment]: <> (Specify how to create a project in OpenShift - is it needed?)
 
-Now, push the image into OpenShift's internal image registry:
+Now, push the image into OpenShift's internal image registry, which will take 1-2 minutes:
 
 ```
 docker push image-registry.openshift-image-registry.svc:5000/apps-was/cos-was
 ```
-[comment]: <> (Optional: Show how to see the pushed image using command line)
-[comment]: <> (Optional: Show how to see the pushed image under ImageStreams in OS console)
+
+Verify that the image is in image registry. The following command will get the images in the registry. OpenShift stores various images needed for its operations and used by its templates in the registry. Filter through the results to only get the image you pushed. Run the following command:
+
+```
+oc get images | grep apps-was/cos-was
+```
+
+The application image you just pushed should be listed. The hash of the image is stored alongside (indicated by the SHA-256 value).
+
+```
+image-registry.openshift-image-registry.svc:5000/apps-was/cos-was@sha256:fbb7162060754261247ad1948dccee0b24b6048b95cd704bf2997eb6f5abfeae
+```
+
+OpenShift uses _ImageStream_ to provide an abstraction for referencing container images from within the cluster. When an image is pushed to registry, an _ImageStream_ is created automatically, if one already doesn't exist. Run the following command to see the _ImageStream_ that's created:
+
+```
+oc get imagestreams -n apps-was
+```
+
+You can also use the OpenShift console to see the _ImageStream_. From the panel on left-side, click on **Builds** > **Image Streams**. Then select `apps-was` from the _Project_ drop-down menu. Click on `cos-was` from the list. Scroll down to the bottom to see the image that you pushed.
 
 
 ## Deploy
@@ -203,7 +223,7 @@ Customer Order Services application uses DB2 as its database. You can connect to
 
 Operators are a method of packaging, deploying, and managing a Kubernetes application. Conceptually, Operators take human operational knowledge and encode it into software that is more easily shared with consumers. Essentially, Operators are pieces of software that ease the operational complexity of running another piece of software. They act like an extension of the software vendor’s engineering team, watching over a Kubernetes environment (such as OpenShift Container Platform) and using its current state to make decisions in real time.
 
-We'll use [Appsody Operator](https://github.com/appsody/appsody-operator/blob/master/doc/user-guide.md) to deploy the application. Appsody Operator is capable of deploying any application image with consistent, production-grade Quality of service (QoS).
+We'll use [Appsody Operator](https://github.com/appsody/appsody-operator/blob/master/doc/user-guide.md), available as part of IBM Cloud Pak for Applications, to deploy the application you containerized. Appsody Operator is capable of deploying any application image with consistent, production-grade Quality of service (QoS).
 
 [comment]: <> (Explain what an operator is and what Appsody Operator does specifically)
 
@@ -239,23 +259,24 @@ We'll use the following `AppsodyApplication` custom resource (CR), to deploy the
   ```
 
   - The `apiVersion` and the `kind` specifies the custom resource to create. `AppsodyApplication` in this case.
+
   - The metadata specifies a name for the instance of `AppsodyApplication` custom resource (CR) and the namespace to deploy to.
   - The image you pushed to internal registry is specified for `applicationImage` parameter.
   - The port for service is specified as 9080.
   - Readiness probe specifies when the application, running inside the pod, is ready to accept traffic. Traffic will not be sent to it unless it's in `Ready` state.
-  - Liveness probe specifies the ongoing health of the running container. The container will be restarted when liveness probe failures exceed the specified threshold.
-  - For probes, we are using the main page `/CustomerOrderServicesWeb/index.html`, which is not the best indication that the app is fully functional. Since the application was not modified, it's the best option. 
+  - Liveness probe specifies the ongoing health of the running container. The container will be restarted when liveness probe failures exceed the specified threshold. The hope is that the problem will be resolved with restart.
+  - For probes, we are using the main page `/CustomerOrderServicesWeb/index.html`, which is not the best indication that the app is fully functional. Since the application was not modified, it's the best option. When we modernize the application later, we'll implement better mechanisms.
   - The settings on probes are:
     - `periodSeconds`: how often (in seconds) to perform the probe
-    - `failureThreshold` - When a Pod starts and the probe fails, Kubernetes will try this many times before giving up. Giving up in case of liveness probe means restarting the container - in hope that the problem will be resolved when restarted. In case of readiness probe the Pod will be marked _unready_. Kubernetes will not send traffic to Pod unless it's marked _ready_.
+    - `failureThreshold` - When a Pod starts and the probe fails, Kubernetes will try this many times before giving up. Giving up in case of liveness probe means restarting the container. In case of readiness probe the Pod will be marked _unready_.
     - `initialDelaySeconds`: Number of seconds after the container has started before probes is initiated. Allows the application to complete initial setups.
   - The `expose` field is a simple toggle to enable Route (proxy) - to expose your application outside the cluster. 
   - The termination policy specified under `route` configures a secured route.
 
 ### Deploy application
 
-1. In OpenShift console, from the panel on left-side, click on **Operators** and then **Installed Operators**.
-1. From the `Project` drop down menu, select `apps-was`. 
+1. In OpenShift console, from the panel on left-side, click on **Operators** > **Installed Operators**.
+1. From the `Project` drop-down menu, select `apps-was`. 
 1. You'll see `Appsody Operator` on the list. From the `Provided APIs` column, click on `Appsody Application`.
 1. Click on `Create AppsodyApplication` button.
 1. Delete the default template. 
@@ -263,8 +284,8 @@ We'll use the following `AppsodyApplication` custom resource (CR), to deploy the
 1. Click on `Create` button.
 1. Click on `cos-was` from the list. 
 1. Navigate down to `Conditions` section and wait for `Reconciled` type to display `True` in Status column.
-1. Click on the `Resources` tab. The resources that the operator created will be listed: Deployment, Service and Route.
-1. On the row with `Deployment` as `Kind`, click on `cos` to get to the Deployment.
+1. Click on the `Resources` tab. The resources that the operator created will be listed: _Deployment_, _Service_ and _Route_.
+1. On the row with `Deployment` as `Kind`, click on `cos-was` to get to the _Deployment_.
 1. Click on `Pods` tab. 
 1. Wait until the `Status` column displays _Running_ and `Readiness` column displays _Ready_. These indicate that the application within the container is running and is ready to handle traffic.
 
@@ -274,10 +295,13 @@ You containerized and deployed the application to RedHat OpenShift.
 
 ## Access the application
 
-1. From the left-panel, select `Networking` and then `Routes`
-1. Note that the URL, listed under the `Location` column, is in the format< application_name >-< project_name >.< ocp cluster url >.
-1. Click on the Route URL
-1. Add `/CustomerOrderServicesWeb` to the end of the URL in the browser to access the application
+1. From the left-panel, select **Networking** > **Routes**.
+
+1. Note that the URL, listed under the `Location` column, is in the format _application_name_-_project_name_._ocp_cluster_url
+
+1. Click on the Route URL.
+
+1. Add `/CustomerOrderServicesWeb` to the end of the URL in the browser to access the application.
 
     ![Dev Running](extras/images/deployed-app.jpg)
 
@@ -285,9 +309,9 @@ You containerized and deployed the application to RedHat OpenShift.
 
 1. Click on the `Account` tab to see user details.
 
-1. From the `Shop` tab, add few items to the cart. Click on an item and then drag and drop the item into the shopping cart.
+1. From the `Shop` tab, add few items to the cart. Click on an item and then drag and drop the item into the shopping cart. Add at least 5 items to the cart.
 
-1. As the items are added, they'll be shown under _Current Shopping Cart_ (on the left side)
+1. As the items are added, they'll be shown under _Current Shopping Cart_ (on the right side).
 
 ## Summary
 

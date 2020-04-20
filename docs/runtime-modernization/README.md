@@ -55,7 +55,7 @@ As before, [IBM Cloud Transformation Advisor](https://www.ibm.com/cloud/garage/p
 
 In this section, you'll learn how to build a Docker image for Customer Order Services application running on Liberty.
 
-Building this image could take around ~5 minutes (multi-stage build that compiles the code, which takes extra time). As before, let's kick that process off and then come back to learn what you did.
+Building this image could take around ~3 minutes (multi-stage build that compiles the code, which takes extra time). As before, let's kick that process off and then come back to learn what you did.
 
 You'll need the web terminal. If it's not open, follow the instructions [here](../common/web-terminal.md) to access it.
 
@@ -126,7 +126,7 @@ The **build** phase made changes to source code and created the Liberty configur
 
   - We need to copy everything that the application needs into the container. So we copy the necessary db2 drivers. 
   
-  - For security, Liberty containers run as non-root. This is infact a requirement for OpenShift. The `COPY` instruction by default copies as root. So change user and group using `--chown` command.
+  - For security, Liberty containers run as non-root. This is infact a requirement for running certified containers in OpenShift. The `COPY` instruction by default copies as root. So change user and group using `--chown=1001:0` command.
 
   - Then, copy Liberty's configuration file `server.xml`.
 
@@ -152,7 +152,7 @@ Validate that image is in the repository by running command:
 docker images
 ```
 
-You should get an output similar to this. Notice that the base image, websphere-traditional, is also listed. It was pulled as the first step of building application image.
+You should get an output similar to this. Notice that the base image, _openliberty/open-liberty_, is also listed. It was pulled as the first step of building application image.
 
 ```
 REPOSITORY                                                           TAG                     IMAGE ID            CREATED                SIZE
@@ -160,15 +160,25 @@ image-registry.openshift-image-registry.svc:5000/apps/cos            latest     
 openliberty/open-liberty                                             full-java8-openj9-ubi   329623a556ff        5 minutes ago          734MB
 ```
 
-Push the image to OpenShift's internal image registry:
+Push the image to OpenShift's internal image registry, which could take upto a minute:
 
 ```
 docker push image-registry.openshift-image-registry.svc:5000/apps/cos
 ```
 
-[comment]: <> (Optional: Show how to see the pushed image using command line)
-[comment]: <> (Optional: Show how to see the pushed image under ImageStreams in OS console)
+Verify that the image is in image registry:
 
+```
+oc get images | grep apps/cos
+```
+
+The application image you just pushed should be listed:
+
+```
+image-registry.openshift-image-registry.svc:5000/apps-was/cos-was@sha256:fbb7162060754261247ad1948dccee0b24b6048b95cd704bf2997eb6f5abfeae
+```
+
+In OpenShift console, from the left-panel, click on **Builds** > **Image Streams**. Then select `apps` from the _Project_ drop-down list. Click on `cos` from the list. Scroll down to the bottom to see the image that you pushed.
 
 
 ## Deploy
@@ -181,11 +191,11 @@ Customer Order Services application uses DB2 as its database. To deploy it to Li
 
 We need to setup a client in Keycloak to handle user authentication for the application. Keycloak runs on your cluster and will handle registering & storing user account information and authenticating the users.
 
-1. Go to the list of **Routes**, select **keycloak** project from the list. 
+1. In OpenShift console, from the left-panel, click on **Networking** > **Routes**.. Then select `keycloak` from the _Project_ drop-down list.
 
 1. Click on the route URL to launch Keycloak.
 
-1. Click on `Administration Console`. Enter `admin` for username and password.
+1. Click on `Administration Console`. Enter `admin` for both username and password.
 
 1. From the menu options on the left, hover over `Master` and click on `Add realm`.
     - A realm manages a set of users, credentials, roles, and groups. A user belongs to and logs into a realm. Realms are isolated from one another and can only manage and authenticate the users that they control.
@@ -194,7 +204,7 @@ We need to setup a client in Keycloak to handle user authentication for the appl
 
 1. Click on `Login` tab. Turn on `User registration`. Click on `Save`. This provides new users the option to register.
 
-1. Click on `Tokens` tab. Set `Access Token Lifespan` to _3 hours_. Click on `Save`.
+1. Click on `Tokens` tab. Set `Access Token Lifespan` to _2 hours_. Click on `Save`. This specifies the maximum time before an access token is expired.
 
 1. From the menu options on the left, select `Clients`.
 
@@ -206,7 +216,7 @@ That concludes the Keycloak setup for now. After we deploy the application, we'l
 
 Specifying credentials and tokens in plain text is not secure. `Secrets` are used to store sensitive information. The stored data can be referenced by other resources. Special care is taken by OpenShift when handling data from secrets. For example, they will not be logged or shown anywhere. 
 
-Let's create 2 secrets, one to store database credentials and another for metrics credentials.
+Let's create 2 secrets, one to store database credentials and another for storing Liberty metrics credentials, which is needed to access the `/metrics` endpoint.
 
 To create a `Secret` for database, click on the `+` button, from the top panel. Paste the following content and click on `Create`.
 
@@ -224,7 +234,7 @@ data:
 type: Opaque
 ``` 
 
-Similarly, create a secret for metrics. Click on the `+` button, from the top panel. Paste the following content and click on `Create`.
+Similarly, create a secret for Liberty. Click on the `+` button, from the top panel. Paste the following content and click on `Create`.
 
 ```yaml
 kind: Secret
@@ -238,11 +248,7 @@ stringData:
 type: Opaque
 ```
 
-Note that the first `Secret` provides the credentials in base64 encoded format using the `data` field. The second one provides in plain text using `stringData` field. OpenShift will automatically convert the credentials to base64 format and place the information under `data` field. 
-
-In OpenShift console, from the panel on left-side, click on **Workloads** and then **Secrets**.
-
-Select `apps` from the _Project_ list. Locate the secret named `liberty-creds` from the list and click on it. Click on the `YAML` tab. The `data` field should contain the credentials in encoded form.
+Note that the first `Secret` provides the credentials in base64 encoded format using the `data` field. The second one provides in plain text using `stringData` field. OpenShift will automatically convert the credentials to base64 format and place the information under `data` field. Click on the `YAML` tab of `liberty-creds` secret. The `data` field should contain the credentials in encoded form.
 
 As anyone can decode the credentials, administrators should ensure that only autenticated users have access to `Secrets` using Role-based access control (RBAC).
 
@@ -250,7 +256,7 @@ You've completed the pre-requisite steps for deploying the application.
 
 ### Open Liberty Operator
 
-We'll use [Open Liberty Operator](https://github.com/OpenLiberty/open-liberty-operator/blob/master/doc/user-guide.md#open-liberty-operator), available as part of Cloud Pak for Applications, to deploy the application. Open Liberty Operator is based on the Appsody Operator you previously used and provides additional capabilities for Open Liberty runtime, such as Day-2 operations.
+We'll use [Open Liberty Operator](https://github.com/OpenLiberty/open-liberty-operator/blob/master/doc/user-guide.md#open-liberty-operator), available as part of IBM Cloud Pak for Applications, to deploy the application. Open Liberty Operator provides all functionalities of Appsody Operator in addition to Open Liberty runtime specific capabilities, such as day-2 operations (gather trace & dumps) and single sing-on (SSO).
 
 Use the following `OpenLibertyApplication` custom resource (CR), to deploy the Customer Order Services application.
 
@@ -291,13 +297,13 @@ spec:
       value: cos_app
     - name: SSO_URI
       value: >-
-        Enter_your_keycloak_route_url_here/auth/
+        https://keycloak-keycloak.ENTER_YOUR_ROUTER_HOSTNAME_HERE/auth/
     - name: JWT_ISSUER
       value: >-
-        Enter_your_keycloak_route_url_here/auth/realms/Galaxy
+        https://keycloak-keycloak.ENTER_YOUR_ROUTER_HOSTNAME_HERE/auth/realms/Galaxy
     - name: JWT_JWKS_URI
       value: >-
-        Enter_your_keycloak_route_url_here/auth/realms/Galaxy/protocol/openid-connect/certs
+        https://keycloak-keycloak.ENTER_YOUR_ROUTER_HOSTNAME_HERE/auth/realms/Galaxy/protocol/openid-connect/certs
     - name: DB_HOST
       value: cos-db-liberty.db.svc
   envFrom:
@@ -320,7 +326,8 @@ spec:
       app-monitoring: 'true'
 ```
 
-- Notice that the parameters are similar to the `AppsodyApplication` custom resource (CR) you used in the previous section. `OpenLibertyApplication` provides all capabilities that Appsody provides in addition to Open Liberty specific capabilities (day-2 operations, single sign-on). 
+- Notice that the parameters are similar to the `AppsodyApplication` custom resource (CR) you used in the operational modernization lab. `OpenLibertyApplication` in addition allows Liberty specific configurations (day-2 operations, single sign-on).
+
 - The application image you earlier pushed to image registry is specified for `applicationImage` parameter.
 - MicroProfile Health endpoints `/health/ready` and `/health/live` are used for readiness and liveness probes.
 - Secured service and route are configured with necessary certificates.
@@ -330,32 +337,33 @@ spec:
 
 ### Deploy application
 
-1. In OpenShift console, from the panel on left-side, click on **Operators** and then  **Installed Operators**.
-1. From the `Project` drop down menu, select `apps`. 
+1. In OpenShift console, from the left-panel, click on **Operators** > **Installed Operators**.
+
+1. Ensure that `apps` is selected from the `Project` drop-down list. 
 1. You should see `Open Liberty Operator` on the list. From the `Provided APIs` column, click on `Open Liberty Application`.
 1. Click on `Create OpenLibertyApplication` button.
-1. Delete the default template. Copy and paste the above `OpenLibertyApplication` custom resource (CR)
-1. Under ENV variables, replace the 3 instances of `Enter_your_keycloak_route_url_here` with the Route URL of Keycloak in your cluster. Ensure that there isn't an extra `/` character before `/auth`
+1. Delete the default template. Copy and paste the above `OpenLibertyApplication` custom resource (CR).
+1. Under `env` variables, replace the 3 instances of `ENTER_YOUR_ROUTER_HOSTNAME_HERE` (within the URLs) with the hostname of the router in your cluster. To get just the hostname, run command `oc get route -n keycloak -o yaml | grep Hostname | sed 's/^.*: //'` on web terminal and then copy the output value. The hostname is stored inside the route. Above command finds the line with hostname and retrieves its value. 
 1. Click on `Create` button.
 1. Click on `cos` from the list. 
 1. Navigate down to `Conditions` section and wait for `Reconciled` type to display `True` in Status column. This means Open Liberty Operator had processed the configurations you specified.
-1. Click on the `Resources` tab. The resources that the operator created will be listed: Deployment, Service and Route.
+1. Click on the `Resources` tab. The resources that the operator created will be listed: _Deployment_, _Service_ and _Route_.
 1. On the row with `Deployment` as `Kind`, click on `cos-was` to get to the Deployment.
 1. Click on `Pods` tab. 
 1. Wait till the `Status` column displays _Running_ and `Readiness` column displays _Ready_. These indicate that the application within the container is running and is ready to handle traffic.
-1. From the left-panel, select `Networking` and then `Routes`
-1. Note that the URL, listed under the `Location` column, is in the familiar format _<application_name>-<application_namespace>.<OpenShift_cluster_url>_. Earlier, when we were setting up Keycloak, we could've predicted what the route URL would be based on that information. In the future, you can do that when setting up a Client for a different application, so you don't have to go back to Keycloak to complete configuration after application deployment.
-
-1. Right-click on the Route URL and copy link address. 
 
 
 ### Complete Keycloak setup
 
-1. Go back to Keycloak console.
+1. In OpenShift console, from the left-panel, select **Networking** > **Routes**.
+
+1. Ensure that `apps` is selected from the _Project_ drop-down list. Right-click on the Route URL and copy link address. 
+
+1. Go back to Keycloak console. If you had closed the Keycloak tab then select `keycloak` from the _Project_ drop-down list and click on the route URL.
 
 1. Click on `Clients`. Click on _cos_app_ under `Client ID` column.
 
-1. Paste the route URL into `Valid Redirect URIs` field and add `*` at the end.
+1. Paste the route URL into `Valid Redirect URIs` field and add `*` at the end of the value.
 
 1. Enter `+` into `Web Origins` field. This is necessary to enable Cross-Origin Resource Sharing (CORS).
 
@@ -364,21 +372,21 @@ spec:
 
 ### Access the application
 
-1. Go back to the OpenShift console, click on the Route URL.
+1. Go back to OpenShift console. In the **Routes** section, ensure that `apps` is selected from the _Project_ drop-down list and click on the route URL for the application.
 
-1. Add `/CustomerOrderServicesWeb` at the end.
+1. Add `/CustomerOrderServicesWeb` to the end of the URL.
 
-1. You'll be taken to the login form. Click on `Register` to register as a new user. Enter the information. Remember your username and password. 
+1. You'll be taken to the login form. Click on `Register` to register as a new user. Enter the information. Remember your username and password.
 
 1. Click on `Register`. Once a user registers with a realm, they can be granted access to different applications that are authenticated by the same realm. This is useful for managing user authentication for multiple applications within your enterprise.
 
-1. Now you'll be taken back to the Customer Order Service application.
+1. Now you'll be taken back to the _Customer Order Service_ application.
 
-1. From the `Shop` tab, add few items to the cart. Click on an item and then drag and drop the item into the shopping cart.
+1. From the `Shop` tab, add few items to the cart. Click on an item and then drag and drop the item into the shopping cart. Add at least 5 items to the cart.
 
-1. As the items are added, it'll be shown under _Current Shopping Cart_ (on the left side)
+1. As the items are added, it'll be shown under _Current Shopping Cart_ (on the right side).
 
-[comment]: <> (Optional: Delete a pod to see how quickly another one is created and becomes ready - compared to tWAS, it's much faster)
+[comment]: <> (Optional: Delete a pod to see how quickly another one is created and becomes ready - compared to traditional WAS, it's much faster)
 
 
 ## Summary

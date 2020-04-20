@@ -43,7 +43,7 @@ Once IBM Cloud Transformation Advisor is installed, it is necessary to create a 
   ![Collection](images/liberty-analyze/workspace3.jpg)
 
 4. When the **No recommendations available** page is displayed, click the **Data Collector** button  
-  ![Collector](../was90/images/tWAS-analyze/collector.jpg)
+  ![Collector](../../operational-modernization/extras/images/tWAS-analyze/collector.jpg)
 
 5. When the **Data Collector** page is displayed, select the **Source Operating System** for your environment and click the **Download** button to download the Data Collector.  
   ![Download](images/liberty-analyze/download.jpg)
