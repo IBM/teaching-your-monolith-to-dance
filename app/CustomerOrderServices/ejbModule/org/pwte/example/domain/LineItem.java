@@ -121,7 +121,7 @@ public class LineItem implements Serializable {
 		for (LineItem item : getOrder().getLineitems()) {
 			if (item.equals(this))
 				inOrders = true;
-			System.out.println("recalc -> " + item.getAmount());
+			//System.out.println("recalc -> " + item.getAmount());
 			total = total.add(item.getAmount()).setScale(2, BigDecimal.ROUND_HALF_UP);
 		}
 		System.out.println("New Total recalc -> " + total);

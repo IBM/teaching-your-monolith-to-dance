@@ -23,7 +23,7 @@
 	<httpAccessLogging id="accessLogging"/>
 
 	<applicationMonitor updateTrigger="mbean"/>
-	<application id="customerOrderServicesApp" location="CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear" name="CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear" type="ear">
+	<application id="customerOrderServicesApp" location="CustomerOrderServicesApp.ear" name="CustomerOrderServicesApp.ear" type="ear">
 		<classloader apiTypeVisibility="spec, ibm-api, third-party,stable"/>
 		<application-bnd>
 			<security-role name="SecureShopper">
@@ -52,10 +52,9 @@
 	</mpJwt>
 	
 	<variable name="DB_HOST" defaultValue="localhost"/>
+	<variable name="DB_PORT" defaultValue="50000"/>
 	<variable name="DB_USER" defaultValue="db2inst1"/>
 	<variable name="DB_PASSWORD" defaultValue="db2inst1"/>
-	<variable name="DB_HOST" defaultValue="localhost"/>
-	<variable name="DB_PORT" defaultValue="50000"/>
 	<variable name="JWT_JWKS_URI" defaultValue=""/>
 	<variable name="JWT_ISSUER" defaultValue=""/>
 	

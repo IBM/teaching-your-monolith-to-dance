@@ -34,13 +34,13 @@ spec:
       value: cos_app
     - name: SSO_URI
       value: >-
-        Enter_your_keycloak_route_url_here/auth/
+        https://keycloak-keycloak.ENTER_YOUR_ROUTER_HOSTNAME_HERE/auth/
     - name: JWT_ISSUER
       value: >-
-        Enter_your_keycloak_route_url_here/auth/realms/Galaxy
+        https://keycloak-keycloak.ENTER_YOUR_ROUTER_HOSTNAME_HERE/auth/realms/Galaxy
     - name: JWT_JWKS_URI
       value: >-
-        Enter_your_keycloak_route_url_here/auth/realms/Galaxy/protocol/openid-connect/certs
+        https://keycloak-keycloak.ENTER_YOUR_ROUTER_HOSTNAME_HERE/auth/realms/Galaxy/protocol/openid-connect/certs
     - name: DB_HOST
       value: cos-db-liberty.db.svc
   envFrom:
