@@ -10,11 +10,7 @@ While traditional WebSphere isn't a 'built for the cloud' runtime like Liberty, 
 
 **This type of modernization shouldn't require any code changes** and can be driven by the operations team. **This path gets the application in to a container with the least amount of effort but doesn't modernize the application or the runtime.**
 
-As organizations modernize to cloud platforms, new technologies and methodologies will be used for build, deployment and management of applications. While this modernization will be focused on cloud-native (built for the cloud) applications, using the traditional WebSphere container will allow common technologies and methodologies to be used regardless of the runtime.
-
-  The diagram below shows the high level decision flow where IBM Cloud Transformation Advisor is used to analyze existing assets and a decision is made to not make code changes to the application and use the traditional WebSphere container as the target runtime.
-
-  ![decision flow](extras/images/tWASflow.jpg)
+As organizations modernize to cloud platforms, new technologies and methodologies will be used for build, deployment and management of applications. Using the traditional WebSphere container will allow common technologies and methodologies to be used regardless of the runtime.
 
 This repository holds a solution that is the result of an **operational modernization** for an existing WebSphere Java EE application that was moved from WebSphere ND v8.5.5 to the traditional WebSphere Base v9 container and is deployed by the IBM CloudPak for Applications to RedHat OpenShift.
 
@@ -30,7 +26,7 @@ In this workshop, we'll use **Customer Order Services** application as an exampl
 
 ## Analysis
 
-[IBM Cloud Transformation Advisor](https://www.ibm.com/garage/method/practices/learn/ibm-transformation-advisor) was used to analyze the existing Customer Order Services application running in the WebSphere ND environment. The steps taken were:
+[IBM Cloud Transformation Advisor](https://www.ibm.com/garage/method/practices/learn/ibm-transformation-advisor) helps you to analyze your on-premises workloads for modernization. It determines the complexity of your applications, estimates a development cost to perform the move to the cloud, and recommends the best target environment. It was used to analyze the existing Customer Order Services application running in the WebSphere ND environment. The steps taken were:
 
 1. Used the IBM Cloud Transformation Advisor available as part of IBM Cloud Pak for Applications. Transformation Advisor Local (Beta) can also be used. 
 
@@ -48,29 +44,35 @@ In this workshop, we'll use **Customer Order Services** application as an exampl
 
 In this section, you'll learn how to build a Docker image for Customer Order Services application running on traditional WebSphere Base v9.
 
-Building this image could take around ~8 minutes (since the image is around 2GB and starting/stopping the WAS server as part of the build process takes few minutes). So let's kick that process off and then come back to learn what you did. Hopefully, the image will be built by the time you complete this section.
+Building this image could take around ~8 minutes (since the image is around 2GB and starting/stopping the WAS server as part of the build process takes few minutes). So let's kick that process off and then come back to learn what you did. The image will likely be built by the time you complete this section.
 
-Follow the instructions [here](../common/oc-login.md) to login to OpenShift cluster via the web terminal.
+1. Follow the instructions [here](../common/oc-login.md) to login to OpenShift cluster via the web terminal.
 
-Clone the GitHub repo with the lab artifacts. Run the following commands on your web terminal:
-```
-cd / && mkdir was90 && cd was90
-git clone --branch was90 https://github.com/IBM/teaching-your-monolith-to-dance.git
-cd teaching-your-monolith-to-dance
-```
+1. Clone the GitHub repo with the lab artifacts and list the files. Run the following commands on your web terminal:
+    ```
+    cd / && mkdir was90 && cd was90
+    git clone --branch was90 https://github.com/IBM/teaching-your-monolith-to-dance.git
+    cd teaching-your-monolith-to-dance
+    ls
+    ```
 
-Run the following command in web terminal to start building the image. While the image is building continue with rest of this section:
+1. Run the following command to create a new project in OpenShift. A project allows a community of users to organize and manage their content in isolation from other communities.
+    ```
+    oc new-project apps-was
+    ```
 
-```
-docker build --tag image-registry.openshift-image-registry.svc:5000/apps-was/cos-was .
-```
+1. Run the following command to start building the image. Make sure to copy the entire command, including the `"."` at the end (which indicates current directory). While the image is building continue with rest of this section:
+    ```
+    docker build --tag image-registry.openshift-image-registry.svc:5000/apps-was/cos-was .
+    ```
 
 As per container's best practices, you should always build immutable images. Injecting environment specific values at deployment time is necessary most of the times and is the only exception to this rule. 
 
 You should create a new image which adds a single application and the corresponding configuration. You should avoid configuring the image manually (after it started) via Admin Console or wsadmin (unless it is for debugging purposes) because such changes won't be present if you spawn a new container from the image. 
 
-We started with the `wsadmin` script that is used by existing Customer Order Services running on-prem. Since this is a legacy application, it runs on older frameworks: most notably it uses JPA 2.0 and JAX-RS 1.1. These are not the default in WAS 9 (as they are in WAS8.5.5), but they are supported. To avoid making application code changes at this time, we modified these settings in the scripts.
+We started with the `wsadmin` script that is used by existing Customer Order Services running on-prem. This script enables application security, creates users and creates JDBC provider for a DB2 database.
 
+Since this is a legacy application, it runs on older frameworks: most notably it uses JPA 2.0 and JAX-RS 1.1. These are not the default in WAS v9 (as they are in WAS v8.5.5), but they are supported. To avoid making application code changes at this time, we modified these settings in the scripts.
 For example, older JAX-RS specification is configured by adding:
 ```
 AdminTask.modifyJaxrsProvider(Server, '[ -provider 1.1]')
@@ -79,7 +81,8 @@ AdminTask.modifyJaxrsProvider(Server, '[ -provider 1.1]')
 Review the contents of the [wsadmin script](https://github.com/IBM/teaching-your-monolith-to-dance/blob/was90/config/cosConfig.py).
 
 We are going to install the application using a properties file, which is an alternative way to install the application, or apply any configuration. The application could also be installed using the `wsadmin` jython script, but we chose to use the properties file to show the two methods configurations can be applied at build time.
-Review the contents of the [properties file](https://github.com/IBM/teaching-your-monolith-to-dance/blob/was90/config/app-update.props). The first block specifies Application resource type, followed by the properties, including the location of the ear file:
+
+Let's review the contents of the [properties file](https://github.com/IBM/teaching-your-monolith-to-dance/blob/was90/config/app-update.props). The first block specifies Application resource type, followed by the property values, including the location of the ear file:
 
 ```
 ResourceType=Application
@@ -101,7 +104,7 @@ nodeName=DefaultNode01
 serverName=server1
 ```
 
-Let's review the contents of the [Dockerfile](https://github.com/IBM/teaching-your-monolith-to-dance/blob/was90/Dockerfile):
+Let's review the contents of the Dockerfile:
 
 ```dockerfile
 FROM ibmcom/websphere-traditional:9.0.5.0-ubi
@@ -135,7 +138,7 @@ RUN /work/configure.sh
 
 Each instruction in the Dockerfile is a layer and each layer is cached. You should always specify the volatile artifacts towards the end.
 
---------
+### Application image
 
 This is the command you ran earlier.
 
@@ -149,15 +152,13 @@ A specific name to tag the built image with is also specified. The value `image-
 
 5000 is the port, which is followed by namespace and name for the image. Later when we push the image to OpenShift's internal image registry, we'll refer to the image by the same values.
 
-[comment]: <> (Optional: Show how to access the image registry service using OpenShift console)
-
 
 Go back to the web terminal to check on the image build.
 
-You should see the following message if image was successfully built. Please wait if it's still building.:
+You should see the following message if image was successfully built. Please wait if it's still building.
 
 ```
-Successfully tagged image-registry.openshift-image-registry.svc:5000/apps-was/cos-was
+Successfully tagged image-registry.openshift-image-registry.svc:5000/apps-was/cos-was:latest
 ```
 
 Validate that image is in the repository by running command:
@@ -208,7 +209,7 @@ OpenShift uses _ImageStream_ to provide an abstraction for referencing container
 oc get imagestreams -n apps-was
 ```
 
-You can also use the OpenShift console to see the _ImageStream_. From the panel on left-side, click on **Builds** > **Image Streams**. Then select `apps-was` from the _Project_ drop-down menu. Click on `cos-was` from the list. Scroll down to the bottom to see the image that you pushed.
+You can also use the OpenShift console (UI) to see the _ImageStream_. From the panel on left-side, click on **Builds** > **Image Streams**. Then select `apps-was` from the _Project_ drop-down menu. Click on `cos-was` from the list. Scroll down to the bottom to see the image that you pushed. 
 
 
 ## Deploy
@@ -276,6 +277,7 @@ We'll use the following `AppsodyApplication` custom resource (CR), to deploy the
 ### Deploy application
 
 1. In OpenShift console, from the panel on left-side, click on **Operators** > **Installed Operators**.
+
 1. From the `Project` drop-down menu, select `apps-was`. 
 1. You'll see `Appsody Operator` on the list. From the `Provided APIs` column, click on `Appsody Application`.
 1. Click on `Create AppsodyApplication` button.
@@ -283,40 +285,38 @@ We'll use the following `AppsodyApplication` custom resource (CR), to deploy the
 1. Copy and paste the above `AppsodyApplication` custom resource (CR).
 1. Click on `Create` button.
 1. Click on `cos-was` from the list. 
-1. Navigate down to `Conditions` section and wait for `Reconciled` type to display `True` in Status column.
-1. Click on the `Resources` tab. The resources that the operator created will be listed: _Deployment_, _Service_ and _Route_.
+1. Navigate down to `Conditions` section and wait for `Reconciled` type to display `True` in _Status_ column. This means Appsody Operator had processed the configurations you specified.
+1. Click on the `Resources` tab. The resources that the operator created will be listed: _Deployment_, _Service_ and _Route_. 
+    - The operator will continue to watch over these resources. If anything changes unexpectedly in the cluster and as a result these resources are no longer in the desired state you defined in `AppsodyApplication` CR then it'll take necessary actions to reach the desired state.
 1. On the row with `Deployment` as `Kind`, click on `cos-was` to get to the _Deployment_.
 1. Click on `Pods` tab. 
 1. Wait until the `Status` column displays _Running_ and `Readiness` column displays _Ready_. These indicate that the application within the container is running and is ready to handle traffic.
 
     [comment]: <> (Optional exercise: delete the pod. Another pod should be created, but takes awhile for it to be ready. Shows that traditional WAS is slow, but Liberty as they'll see later is faster)
 
-You containerized and deployed the application to RedHat OpenShift.
 
 ## Access the application
 
 1. From the left-panel, select **Networking** > **Routes**.
 
-1. Note that the URL, listed under the `Location` column, is in the format _application_name_-_project_name_._ocp_cluster_url
+1. Note that the URL, listed under the `Location` column, is in the format _application_name_-_project_name_._your_cluster_url
 
 1. Click on the Route URL.
 
 1. Add `/CustomerOrderServicesWeb` to the end of the URL in the browser to access the application.
 
-    ![Dev Running](extras/images/deployed-app.jpg)
-
 1. Log in to the application. Enter `skywalker` for username and `force` for password.
 
-1. Click on the `Account` tab to see user details.
+1. Click on the `Account` tab to see user details. This information is retrieved from the database.
 
 1. From the `Shop` tab, add few items to the cart. Click on an item and then drag and drop the item into the shopping cart. Add at least 5 items to the cart.
 
 1. As the items are added, they'll be shown under _Current Shopping Cart_ (on the right side).
 
+    ![Dev Running](extras/images/add-item-to-cart.gif)
+
 ## Summary
 
-Congratulations! You've completed the first section of the workshop! 
-
-This application has been modified from the initial WebSphere ND v8.5.5 version to the traditional WebSphere Base v9 container and is deployed by the IBM CloudPak for Applications to RedHat OpenShift.
+Congratulations! You containerized and deployed a monolith application to cloud! You've completed the first section of the workshop.
 
 Let's continue with the workshop. Head over to the [Runtime Modernization lab](../runtime-modernization/README.md).
