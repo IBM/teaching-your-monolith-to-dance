@@ -114,4 +114,4 @@ Congratulations! You've completed the lab setup.
 
 ## Next
 
-**Are you excited to get started with the labs?** Please head over to the first lab on [Operational Modernization](operational-modernization/README.md).
+**Are you excited to get started with the labs?** Please head over to the first lab on [Operational Modernization](../operational-modernization/README.md).
