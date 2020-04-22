@@ -262,16 +262,24 @@ We'll use the following `AppsodyApplication` custom resource (CR), to deploy the
   - The `apiVersion` and the `kind` specifies the custom resource to create. `AppsodyApplication` in this case.
 
   - The metadata specifies a name for the instance of `AppsodyApplication` custom resource (CR) and the namespace to deploy to.
+
   - The image you pushed to internal registry is specified for `applicationImage` parameter.
+
   - The port for service is specified as 9080.
+
   - Readiness probe specifies when the application, running inside the pod, is ready to accept traffic. Traffic will not be sent to it unless it's in `Ready` state.
+
   - Liveness probe specifies the ongoing health of the running container. The container will be restarted when liveness probe failures exceed the specified threshold. The hope is that the problem will be resolved with restart.
+
   - For probes, we are using the main page `/CustomerOrderServicesWeb/index.html`, which is not the best indication that the app is fully functional. Since the application was not modified, it's the best option. When we modernize the application later, we'll implement better mechanisms.
+
   - The settings on probes are:
     - `periodSeconds`: how often (in seconds) to perform the probe
     - `failureThreshold` - When a Pod starts and the probe fails, Kubernetes will try this many times before giving up. Giving up in case of liveness probe means restarting the container. In case of readiness probe the Pod will be marked _unready_.
     - `initialDelaySeconds`: Number of seconds after the container has started before probes is initiated. Allows the application to complete initial setups.
+
   - The `expose` field is a simple toggle to enable Route (proxy) - to expose your application outside the cluster. 
+
   - The termination policy specified under `route` configures a secured route.
 
 ### Deploy application
@@ -279,17 +287,28 @@ We'll use the following `AppsodyApplication` custom resource (CR), to deploy the
 1. In OpenShift console, from the panel on left-side, click on **Operators** > **Installed Operators**.
 
 1. From the `Project` drop-down menu, select `apps-was`. 
+
 1. You'll see `Appsody Operator` on the list. From the `Provided APIs` column, click on `Appsody Application`.
+
 1. Click on `Create AppsodyApplication` button.
+
 1. Delete the default template. 
+
 1. Copy and paste the above `AppsodyApplication` custom resource (CR).
+
 1. Click on `Create` button.
+
 1. Click on `cos-was` from the list. 
+
 1. Navigate down to `Conditions` section and wait for `Reconciled` type to display `True` in _Status_ column. This means Appsody Operator had processed the configurations you specified.
+
 1. Click on the `Resources` tab. The resources that the operator created will be listed: _Deployment_, _Service_ and _Route_. 
     - The operator will continue to watch over these resources. If anything changes unexpectedly in the cluster and as a result these resources are no longer in the desired state you defined in `AppsodyApplication` CR then it'll take necessary actions to reach the desired state.
+
 1. On the row with `Deployment` as `Kind`, click on `cos-was` to get to the _Deployment_.
+
 1. Click on `Pods` tab. 
+
 1. Wait until the `Status` column displays _Running_ and `Readiness` column displays _Ready_. These indicate that the application within the container is running and is ready to handle traffic.
 
     ![Dev Running](extras/images/pod-status.png)

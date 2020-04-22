@@ -174,6 +174,7 @@ MicroProfile Metrics is used to gather metrics about the time it takes to add an
 The Liberty runtime configuration file `server.xml`was created from the template provided by IBM Cloud Transformation Advisor. Have a look at the final version of the file available [here](https://github.com/IBM/teaching-your-monolith-to-dance/tree/liberty/config/server.xml).
 
   - The necessary features, including those for MicroProfile, are enabled (e.g. `jdbc-4.2, jaxrs-2.1, mpHealth-2.1`).
+
   - An HTTP endpoint is configured by:
     ```xml
     <httpEndpoint httpPort="-1" httpsPort="9443" accessLoggingRef="accessLogging" id="defaultHttpEndpoint"/>
@@ -432,10 +433,15 @@ spec:
 - Notice that the parameters are similar to the `AppsodyApplication` custom resource (CR) you used in the operational modernization lab. `OpenLibertyApplication` in addition allows Liberty specific configurations (day-2 operations, single sign-on).
 
 - The application image you pushed earlier to internal image registry is specified for `applicationImage` parameter.
+
 - MicroProfile Health endpoints `/health/ready` and `/health/live` are used for readiness and liveness probes.
+
 - Secured service and route are configured with necessary certificates.
+
 - Environment variables have been defined to be passed on to the running container. Information for the Keycloak client you setup previously is specified using environment variables (e.g `SSO_REALM`). Before deploying, you'll replace `ENTER_YOUR_ROUTER_HOSTNAME_HERE` (within the URLs) with the hostname of the router in your cluster.
+
 - The host of the database is specified using its _Service_ address `cos-db-liberty.db.svc` and its credentials are passed in using the _Secret_ `db-creds` you created earlier. The `envFrom` parameter is used to define all of the Secret’s data as environment variables. The key from the _Secret_ becomes the environment variable name.
+
 - Enabled application monitoring so that Prometheus can scrape the information provided by MicroProfile Metric's `/metrics` endpoint in Liberty. The `/metrics` endpoint is protected, hence the credentials are provided using the _Secret_ `liberty-creds` you created earlier.
 
 
@@ -448,15 +454,25 @@ spec:
 1. From the left-panel, click on **Operators** > **Installed Operators**.
 
 1. Ensure that `apps` is selected from the `Project` drop-down list. 
+
 1. You should see `Open Liberty Operator` on the list. From the `Provided APIs` column, click on `Open Liberty Application`.
+
 1. Click on `Create OpenLibertyApplication` button.
+
 1. Delete the default template. Copy and paste the above `OpenLibertyApplication` custom resource (CR). Under `env` variables, replace the 3 instances of `ENTER_YOUR_ROUTER_HOSTNAME_HERE` (within the URLs) with the hostname of the router in your cluster. To get just the hostname, run command `oc get route -n keycloak -o yaml | grep Hostname | sed "s/^.*: //"` on web terminal and then copy the output value. The hostname is stored inside the route. Above command finds the line with hostname and retrieves its value. 
+
 1. Click on `Create` button.
+
 1. Click on `cos` from the list. 
+
 1. Navigate down to `Conditions` section and wait for `Reconciled` type to display `True` in Status column. This means Open Liberty Operator had processed the configurations you specified.
+
 1. Click on the `Resources` tab. The resources that the operator created will be listed: _Deployment_, _Service_ and _Route_.
+
 1. On the row with `Deployment` as `Kind`, click on `cos-was` to get to the Deployment.
+
 1. Click on `Pods` tab. 
+
 1. Wait until the `Status` column displays _Running_ and `Readiness` column displays _Ready_. These indicate that the application within the container is running and is ready to handle traffic.
 
 

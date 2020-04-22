@@ -11,8 +11,11 @@ IBM Application Navigator provides a single dashboard to manage your application
 1. In OpenShift console, from the left-panel, select **Networking** > **Routes**.
 
 1. From the _Project_ drop-down list, select `kappnav`. 
+
 1. Click on the route URL (listed under the _Location_ column).
+
 1. Click on `Log in with OpenShift`. Click on `Allow selected permissions`.
+
 1. Notice the list of applications you deployed. Click on them to see the resources that are part of the applications.
 
 As you modernize your applications, some workload would still be running on traditional environments. IBM Application Navigator, included as part of IBM Cloud Pak for Applications, supports adding WebSphere Network Deployment (ND) environments. So they can be managed from the same dashboard. Importing an existing WebSphere Application Server ND cell creates a custom resource to represent the cell. Application Navigator automatically discovers enterprise applications that are deployed on the cell and creates custom resources to represent those applications. Application Navigator periodically polls the cell to keep the state of the resources synchronized with the cell. 
@@ -26,19 +29,26 @@ Pod processes running in OpenShift frequently produce logs. To effectively manag
 ### Launch Kibana
 
 1. In OpenShift console, from the left-panel, select **Networking** > **Routes**.
+
 1. From the _Project_ drop-down list, select `openshift-logging`. 
+
 1. Click on the route URL (listed under the _Location_ column).
+
 1. Click on `Log in with OpenShift`. Click on `Allow selected permissions`.
+
 1. In Kibana console, from the left-panel, click on `Management`.
 
 1. Click on `Index Patterns`. Click on `project.*`. 
     - This index contains only a set of default fields and does not include all of the fields from the deployed application’s JSON log object. Therefore, the index needs to be refreshed to have all the fields from the application’s log object available to Kibana. 
+
 1. Click on the refresh icon and then click on `Refresh fields`.
 
 ### Import dashboards
 
 1. Download [zip file](https://ibm.box.com/s/eg2ycxtymrhefpvfbullvos08avc18r0) containing dashboards to your computer and unzip to a local directory.
+
 1. Let's import dashboards for Liberty and WAS. From the left-panel, click on `Management`. Click on `Saved Objects` tab and then click on `Import`.
+
 1. Navigate to the _kibana_ sub-directory and select `ibm-open-liberty-kibana5-problems-dashboard.json` file. When prompted, click `Yes, overwrite all` option. It'll take few seconds for the dashboard to show up on the list.
 
 1. Repeat the steps to import `ibm-open-liberty-kibana5-traffic-dashboard.json` and `ibm-websphere-traditional-kibana5-dashboard.json`.
@@ -50,20 +60,30 @@ In Kibana console, from the left-panel, click on `Dashboard`. You'll see 3 dashb
 #### Liberty applications
 
 1. Click on _Liberty-Problems-K5-20191122_. This dashboard visualizes message, trace and FFDC information from Liberty applications.
+
 1. By default, data from the last 15 minutes are rendered. Adjust the time-range (from the top-right corner), so that it includes data from when you tried the Open Liberty application.
+
 1. Once the data is rendered, you'll see some information about the namespace, pod, containers where events/problems occurred along with a count for each. 
+
 1. Scroll down to `Liberty Potential Problem Count` section which lists the number of ERROR, FATA, SystemErr and WARNING events. You'll likely see some WARNING events.
+
 1. Below that you'll see `Liberty Top Message IDs`. This helps to quickly identify most occurring events and their timeline.
+
 1. Scroll-up and click on the number below WARNING. Dashboard will change other panels to show just the events for warnings. Using this, you can determine: whether the failures occurred on one particular pod/server or in multiple instances, whether they occurred around the same or different time.
 
 1. Scroll-down to the actual warning messages. In this case some files from dojo were not found. These warnings should be fixed.
 
 1. Go back to the list of dashboards and click on _Liberty-Traffic-K5-20191122_. This dashboard helps to identify failing or slow HTTP requests on Liberty applications.
+
 1. As before, adjust the time-range as necessary if no data is rendered.
+
 1. You'll see some information about the namespace, pod, containers for the traffic along with a count for each. 
+
 1. Scroll-down to `Liberty Error Response Code Count` section which lists the number of requests failed with HTTP response codes in 400s and 500s ranges.
+
 1. Scroll-down to `Liberty Top URLs` which lists the most frequently accessed URLs
     - The _/health_ and _/metrics_ endpoints are running on the same server and are queried frequently for probes and for scraping information. You can add a filter to include/exclude certain applications.
+
 1. On the right-hand side, you'll see list of endpoints that had the slowest response times.
 
 1. Scroll-up and click on the number listed below 400s. Dashboard will change other panels to show just the traffic with response code in 400s. You can see the timeline and the actual messages below. These are related to warnings from last dashboard about dojo files not being found (response code 404).
@@ -71,6 +91,7 @@ In Kibana console, from the left-panel, click on `Dashboard`. You'll see 3 dashb
 #### Traditional WebSphere applications
 
 1. Go back to the list of dashboards and click on _WAS-traditional-Problems-K5-20190609_. Similar to the first dashboard for Liberty, this dashboard visualizes message and trace information for WebSphere Application Server traditional.
+
 1. As before, adjust the time-range as necessary if no data is rendered.
 
 1. Explore the panels and filter through the events to see messages corresponding to just those events.
@@ -88,15 +109,25 @@ Building observability into applications externalizes the internal status of a s
 1. In OpenShift console, from the left-panel, select **Networking** > **Routes**.
 
 1. From the _Project_ drop-down list, select `app-monitoring`. 
+
 1. Click on the route URL (listed under the _Location_ column).
+
 1. Click on `Log in with OpenShift`. Click on `Allow selected permissions`.
+
 1. In Grafana, from the left-panel, hover over the dashboard icon and click on `Manage`.
+
 1. You should see `Liberty-Metrics-Dashboard` on the list. Click on it.
+
 1. Explore the dashboards. The first 2 are for Customer Order Services application. The rest are for Liberty.
+
 1. Click on `Customer Order Services - Shopping Cart`. By default, it'll show the data for the last 15 minutes. Adjust the time-range from the top-right as necessary. 
+
 1. You should see the frequency of requests, number of requests, pod information, min/max request times.
+
 1. Scroll-down to expand the `CPU` section. You'll see information about process CPU time, CPU system load for pods.
+
 1. Scroll-down to expand the `Servlets` section. You'll see request count and response times for application servlet as well as health and metrics endpoints.
+
 1. Explore the other sections.
 
     ![requesting server dump](extras/images/metrics-dashboard.gif)
@@ -112,12 +143,19 @@ A storage must be configured so the generated artifacts can persist, even after 
 1. In OpenShift console, from the left-panel, select **Storage** > **Persistent Volume Claims**.
 
 1. From the _Project_ drop-down list, select `apps`. 
+
 1. Click on `Create Persistent Volume Claim` button.
+
 1. Ensure that `Storage Class` is `ibmc-block-gold`. If not, make the selection from the list.
+
 1. Enter `liberty` for `Persistent Volume Claim Name` field.
+
 1. Request 1 GiB by entering `1` in the text box for `Size`.
+
 1. Click on `Create`.
+
 1. Created Persistent Volume Claim will be displayed. The `Status` field would display `Pending`. Wait for it to change to `Bound`. It may take 1-2 minutes.
+
 1. Once bound, you should see the volume displayed under `Persistent Volume` field.
 
 ### Enable serviceability
@@ -125,10 +163,15 @@ A storage must be configured so the generated artifacts can persist, even after 
 Enable serviceability option for the Customer Order Services application. In productions systems, it's recommended that you do this step with the initial deployment of the application - not when you encounter an issue and need to gather server traces or dumps. OpenShift can not attach volumes to running Pods so it'll have to create a new Pod, attach the volume and then take down the old Pod. If the problem is intermittent or hard to reproduce, you may not be able to reproduce on the new instance of server running in the new Pod. The volume can be shared by all Liberty applications that are in the same namespace and the volumes wouldn't be used unless you perform day-2 operation on a particular application - so that should make it easy to enable serviceability with initial deployment.
 
 1. From the left-panel, click on **Operators** > **Installed Operators**.
+
 1. Ensure that `apps` is selected from the _Project_ drop-down list. 
+
 1. You should see `Open Liberty Operator` on the list. Click on `Open Liberty Application` (displayed under `Provided APIs` column).
+
 1. Click on the application named `cos` which you previously deployed.
+
 1. Click on the `YAML` tab.
+
 1. Specify the storage request (Persistent Volume Claim) you made earlier to Open Liberty Operator and it will find the actual volume from the claim name. To avoid indentation issues, replace the line with `spec:` with the following YAML content:
 
     ```yaml 
@@ -137,7 +180,9 @@ Enable serviceability option for the Customer Order Services application. In pro
         volumeClaimName: liberty
     ```
 1. Click on `Save`.
+
 1. From the left-panel, click on **Workloads** > **Pods**. Wait till the pod's _Readiness_ column changes to _Ready_.
+
 1. Pod's name is needed for requesting server dump and trace in the next sections. Click on the pod and copy the value under `Name` field.
 
     ![requesting server dump](extras/images/pod-name.png)
@@ -149,11 +194,17 @@ You can request a snapshot of the server status including different types of ser
 1. From the left-panel, click on **Operators** > **Installed Operators**.
 
 1. From the `Open Liberty Operator` row, click on `Open Liberty Dump` (displayed under `Provided APIs` column).
+
 1. Click on `Create OpenLibertyDump` button. 
+
 1. Replace `Specify_Pod_Name_Here` with the pod name you copied earlier.
+
 1. The `include` field specifies the type of server dumps to request. Heap and thread dumps are specified by default. Let's use the default values.
+
 1. Click on `Create`.
+
 1. Click on `example-dump` from the list.
+
 1. Scroll-down to the `Conditions` section and you should see `Started` status with `True` value. Wait for the operator to complete the dump operation. You should see status `Completed` with `True` value.
 
     ![requesting server dump](extras/images/day2-dump-operation.gif)
@@ -165,11 +216,17 @@ You can also request server traces, from an instance of Open Liberty server runn
 1. From the left-panel, click on **Operators** > **Installed Operators**.
 
 1. From the `Open Liberty Operator` row, click on `Open Liberty Trace`.
+
 1. Click on `Create OpenLibertyTrace` button.
+
 1. Replace `Specify_Pod_Name_Here` with the pod name you copied earlier.
+
 1. The `traceSpecification` field specifies the trace string to be used to selectively enable trace on Liberty server. Let's use the default value. 
+
 1. Click on `Create`.
+
 1. Click on `example-trace` from the list.
+
 1. Scroll-down to the `Conditions` section and you should see `Enabled` status with `True` value. 
     - Note: Once the trace has started, it can be stopped by setting the `disable` parameter to true. Deleting the CR will also stop the tracing. Changing the `podName` will first stop the tracing on the old Pod before enabling traces on the new Pod. You can also specify the maximum trace file size and the maximum number of files before rolling over using `maxFileSize` and `maxFiles` parameters.
 
@@ -180,7 +237,9 @@ You can also request server traces, from an instance of Open Liberty server runn
 1. The generated trace and dump files should now be in the persistent volume. You used storage from IBM Cloud and to access those files, we have to go through a number of steps using different tools. But since the volume is attached to the Pod, we can easily verify that those files are present using Pod's terminal.
 
 1. From the left-panel, click on **Workloads** > **Pods**. Click on the pod and then click on `Terminal` tab. 
+
 1. Enter `ls -R serviceability/apps` to list the files. The shared volume is mounted at `serviceability` folder. The sub-folder `apps` is the namespace of the Pod. You should see a zip file for dumps and trace log files. These are produced by the day-2 operations you performed.
+
 1. Using Open Liberty Operator, you learned to perform day-2 operations on a Liberty server running inside a container, which is deployed to a Pod.
 
     ![requesting server dump](extras/images/day2-files.gif)
