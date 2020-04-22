@@ -14,6 +14,8 @@ As organizations modernize to cloud platforms, new technologies and methodologie
 
 This repository holds a solution that is the result of an **operational modernization** for an existing WebSphere Java EE application that was moved from WebSphere ND v8.5.5 to the traditional WebSphere Base v9 container and is deployed by the IBM CloudPak for Applications to RedHat OpenShift.
 
+Note that various links to other resources are provided throughout the lab instructions. Only the instructions that explicitly asks to click on the link are mandatory for this workshop. Other links are for references and for you to explore after workshop.
+
 In this workshop, we'll use **Customer Order Services** application as an example. In order to modernize, the application will go through through **analysis**, **build** and **deploy** phases. Click [here](../common/application.md) and get to know the application, its architecture and components.
 
 ## Table of Contents
@@ -46,7 +48,7 @@ In this section, you'll learn how to build a Docker image for Customer Order Ser
 
 Building this image could take around ~8 minutes (since the image is around 2GB and starting/stopping the WAS server as part of the build process takes few minutes). So let's kick that process off and then come back to learn what you did. The image will likely be built by the time you complete this section.
 
-1. Follow the instructions [here](../common/oc-login.md) to login to OpenShift cluster via the web terminal.
+1. You'll need the web terminal (the same one from lab setup). If it's not open, follow the instructions [here](../common/setup.md#access-the-web-terminal) to login to OpenShift cluster via the web terminal.
 
 1. Clone the GitHub repo with the lab artifacts and list the files. Run the following commands on your web terminal:
     ```
@@ -61,10 +63,12 @@ Building this image could take around ~8 minutes (since the image is around 2GB 
     oc new-project apps-was
     ```
 
-1. Run the following command to start building the image. Make sure to copy the entire command, including the `"."` at the end (which indicates current directory). While the image is building continue with rest of this section:
+1. Run the following command to start building the image. Make sure to copy the entire command, including the `"."` at the end (which indicates current directory). This command will be explained later in the `Build image` section. While the image is building continue with rest of the lab:
     ```
     docker build --tag image-registry.openshift-image-registry.svc:5000/apps-was/cos-was .
     ```
+
+### Application artifacts
 
 As per container's best practices, you should always build immutable images. Injecting environment specific values at deployment time is necessary most of the times and is the only exception to this rule. 
 
@@ -104,6 +108,8 @@ nodeName=DefaultNode01
 serverName=server1
 ```
 
+### Build instructions
+
 Let's review the contents of the Dockerfile:
 
 ```dockerfile
@@ -138,7 +144,7 @@ RUN /work/configure.sh
 
 Each instruction in the Dockerfile is a layer and each layer is cached. You should always specify the volatile artifacts towards the end.
 
-### Application image
+### Build image
 
 This is the command you ran earlier.
 
@@ -230,34 +236,34 @@ We'll use [Appsody Operator](https://github.com/appsody/appsody-operator/blob/ma
 
 We'll use the following `AppsodyApplication` custom resource (CR), to deploy the Customer Order Services application:
 
-  ```yaml
-  apiVersion: appsody.dev/v1beta1
-  kind: AppsodyApplication
-  metadata:
-    name: cos-was
-    namespace: apps-was
-  spec:
-    applicationImage: image-registry.openshift-image-registry.svc:5000/apps-was/cos-was
-    service:
+```yaml
+apiVersion: appsody.dev/v1beta1
+kind: AppsodyApplication
+metadata:
+  name: cos-was
+  namespace: apps-was
+spec:
+  applicationImage: image-registry.openshift-image-registry.svc:5000/apps-was/cos-was
+  service:
+    port: 9080
+  readinessProbe:
+    httpGet:
+      path: /CustomerOrderServicesWeb/index.html
       port: 9080
-    readinessProbe:
-      httpGet:
-        path: /CustomerOrderServicesWeb/index.html
-        port: 9080
-      periodSeconds: 10
-      failureThreshold: 3
-    livenessProbe:
-      httpGet:
-        path: /CustomerOrderServicesWeb/index.html
-        port: 9080
-      periodSeconds: 30
-      failureThreshold: 6
-      initialDelaySeconds: 90
-    expose: true
-    route:
-      termination: edge
-      insecureEdgeTerminationPolicy: Redirect
-  ```
+    periodSeconds: 10
+    failureThreshold: 3
+  livenessProbe:
+    httpGet:
+      path: /CustomerOrderServicesWeb/index.html
+      port: 9080
+    periodSeconds: 30
+    failureThreshold: 6
+    initialDelaySeconds: 90
+  expose: true
+  route:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+```
 
   - The `apiVersion` and the `kind` specifies the custom resource to create. `AppsodyApplication` in this case.
 
@@ -292,9 +298,7 @@ We'll use the following `AppsodyApplication` custom resource (CR), to deploy the
 
 1. Click on `Create AppsodyApplication` button.
 
-1. Delete the default template. 
-
-1. Copy and paste the above `AppsodyApplication` custom resource (CR).
+1. Replace the content of default template with the above `AppsodyApplication` custom resource (CR).
 
 1. Click on `Create` button.
 
@@ -309,7 +313,7 @@ We'll use the following `AppsodyApplication` custom resource (CR), to deploy the
 
 1. Click on `Pods` tab. 
 
-1. Wait until the `Status` column displays _Running_ and `Readiness` column displays _Ready_. These indicate that the application within the container is running and is ready to handle traffic.
+1. Wait until the `Status` column displays _Running_ and `Readiness` column displays _Ready_. It may take 1-2 minutes. These indicate that the application within the container is running and is ready to handle traffic.
 
     ![Dev Running](extras/images/pod-status.png)
 
@@ -322,11 +326,9 @@ We'll use the following `AppsodyApplication` custom resource (CR), to deploy the
 
 1. Note that the URL, listed under the `Location` column, is in the format _application_name_-_project_name_._your_cluster_url
 
-1. Click on the Route URL.
+1. Click on the Route URL. It's expected to get a message stating _SRVE0255E: A WebGroup/Virtual Host to handle / has not been defined_.
 
-1. Add `/CustomerOrderServicesWeb` to the end of the URL in the browser to access the application.
-
-1. Log in to the application. Enter `skywalker` for username and `force` for password.
+1. The username and password to login to the application are `skywalker` and `force` respectively. Add `/CustomerOrderServicesWeb` to the end of the URL in the browser to access the application. 
 
 1. Click on the `Account` tab to see user details. This information is retrieved from the database.
 

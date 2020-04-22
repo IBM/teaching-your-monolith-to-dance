@@ -174,11 +174,12 @@ Enable serviceability option for the Customer Order Services application. In pro
 
 1. Specify the storage request (Persistent Volume Claim) you made earlier to Open Liberty Operator and it will find the actual volume from the claim name. To avoid indentation issues, replace the line with `spec:` with the following YAML content:
 
-    ```yaml 
-    spec:
-      serviceability:
-        volumeClaimName: liberty
-    ```
+```yaml 
+spec:
+    serviceability:
+    volumeClaimName: liberty
+```
+
 1. Click on `Save`.
 
 1. From the left-panel, click on **Workloads** > **Pods**. Wait till the pod's _Readiness_ column changes to _Ready_.

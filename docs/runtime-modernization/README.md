@@ -53,7 +53,7 @@ In this section, you'll learn how to build a Docker image for Customer Order Ser
 
 Building this image could take around ~3 minutes (multi-stage build that compiles the code, which takes extra time). As before, let's kick that process off and then come back to learn what you did.
 
-You'll need the web terminal (same as the one from previous lab). If it's not open, follow the instructions [here](../common/oc-login.md) to login to OpenShift cluster via the web terminal.
+You'll need the web terminal (same as the one from previous lab). If it's not open, follow the instructions [here](../common/setup.md#access-the-web-terminal) to login to OpenShift cluster via the web terminal.
 
 Clone the GitHub repo with the lab artifacts for Liberty (these are different from the artifacts cloned in last lab). Run the following commands on your web terminal:
 ```
@@ -276,7 +276,7 @@ oc get images | grep apps/cos
 The application image you just pushed should be listed:
 
 ```
-image-registry.openshift-image-registry.svc:5000/apps-was/cos-was@sha256:fbb7162060754261247ad1948dccee0b24b6048b95cd704bf2997eb6f5abfeae
+image-registry.openshift-image-registry.svc:5000/apps-was/cos@sha256:fbb7162060754261247ad1948dccee0b24b6048b95cd704bf2997eb6f5abfeae
 ```
 
 In OpenShift console, from the left-panel, click on **Builds** > **Image Streams**. Then select `apps` from the _Project_ drop-down list. Click on `cos` from the list. Scroll down to the bottom to see the image that you pushed.
@@ -320,7 +320,7 @@ Specifying credentials and tokens in plain text is not secure. `Secrets` are use
 
 Let's create 2 secrets, one to store database credentials and another for storing Liberty metrics credentials, which is needed to access the `/metrics` endpoint.
 
-In OpenShift concole, you can click on the `+` icon on the top panel to quickly create a resource (as shown below). 
+In OpenShift console, you can click on the `+` icon on the top panel to quickly create a resource (as shown below). 
 
   ![create secret](extras/images/create-secret.gif)
 
@@ -360,7 +360,7 @@ You've completed the pre-requisite steps for deploying the application.
 
 ### Open Liberty Operator
 
-We'll use [Open Liberty Operator](https://github.com/OpenLiberty/open-liberty-operator/blob/master/doc/user-guide.md#open-liberty-operator), available as part of IBM Cloud Pak for Applications, to deploy the application. Open Liberty Operator provides all functionalities of Appsody Operator in addition to Open Liberty runtime specific capabilities, such as day-2 operations (gather trace & dumps) and single sing-on (SSO).
+We'll use [Open Liberty Operator](https://github.com/OpenLiberty/open-liberty-operator/blob/master/doc/user-guide.md#open-liberty-operator), available as part of IBM Cloud Pak for Applications, to deploy the application. Open Liberty Operator provides all functionalities of Appsody Operator in addition to Open Liberty runtime specific capabilities, such as day-2 operations (gather trace & dumps) and single sign-on (SSO).
 
 Use the following `OpenLibertyApplication` custom resource (CR), to deploy the Customer Order Services application.
 
@@ -469,7 +469,7 @@ spec:
 
 1. Click on the `Resources` tab. The resources that the operator created will be listed: _Deployment_, _Service_ and _Route_.
 
-1. On the row with `Deployment` as `Kind`, click on `cos-was` to get to the Deployment.
+1. On the row with `Deployment` as `Kind`, click on `cos` to get to the Deployment.
 
 1. Click on `Pods` tab. 
 

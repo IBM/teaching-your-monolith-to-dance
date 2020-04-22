@@ -22,4 +22,4 @@ There are several approaches to application modernization and provided are key r
       - [Introduction to Containerization](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/HelloContainer)
       - [Introduction to Container Orchestration using Openshift](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift)
 
-   * **Are you excited to get started?** Head over to the [Operational Modernization lab](operational-modernization/README.md).
+  * Please follow the [setup instructions](common/setup.md) to access the Red Hat OpenShift cluster on IBM Cloud required for the workshop.
