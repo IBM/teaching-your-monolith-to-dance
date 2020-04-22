@@ -47,22 +47,19 @@ Pod processes running in OpenShift frequently produce logs. To effectively manag
 
 In Kibana console, from the left-panel, click on `Dashboard`. You'll see 3 dashboards on the list. The first 2 are for Liberty. The last one is for WAS traditional. Read the description next to each dashboard.
 
-#### Dashboard for problems on Liberty
+#### Liberty applications
 
-1. Click on _Liberty-Problems-K5-20191122_. This dashboard visualizes message, trace and FFDC information.
-1. By default, data from the last 15 minutes are rendered. Adjust the time frame (from the top-right corner), so that it includes data from when you tried the Open Liberty application.
+1. Click on _Liberty-Problems-K5-20191122_. This dashboard visualizes message, trace and FFDC information from Liberty applications.
+1. By default, data from the last 15 minutes are rendered. Adjust the time-range (from the top-right corner), so that it includes data from when you tried the Open Liberty application.
 1. Once the data is rendered, you'll see some information about the namespace, pod, containers where events/problems occurred along with a count for each. 
 1. Scroll down to `Liberty Potential Problem Count` section which lists the number of ERROR, FATA, SystemErr and WARNING events. You'll likely see some WARNING events.
 1. Below that you'll see `Liberty Top Message IDs`. This helps to quickly identify most occurring events and their timeline.
 1. Scroll-up and click on the number below WARNING. Dashboard will change other panels to show just the events for warnings. Using this, you can determine: whether the failures occurred on one particular pod/server or in multiple instances, whether they occurred around the same or different time.
 
-1. Scroll-down to the actual warning messages. In this case some files from dojo were not found. We should fix those warnings.
+1. Scroll-down to the actual warning messages. In this case some files from dojo were not found. These warnings should be fixed.
 
-
-#### Dashboard for Liberty traffic
-
-1. Go back to the list of dashboards and click on _Liberty-Traffic-K5-20191122_. This dashboard helps to identify failing or slow HTTP requests.
-1. As before, adjust the time-frame as necessary if no data is rendered.
+1. Go back to the list of dashboards and click on _Liberty-Traffic-K5-20191122_. This dashboard helps to identify failing or slow HTTP requests on Liberty applications.
+1. As before, adjust the time-range as necessary if no data is rendered.
 1. You'll see some information about the namespace, pod, containers for the traffic along with a count for each. 
 1. Scroll-down to `Liberty Error Response Code Count` section which lists the number of requests failed with HTTP response codes in 400s and 500s ranges.
 1. Scroll-down to `Liberty Top URLs` which lists the most frequently accessed URLs
@@ -71,13 +68,38 @@ In Kibana console, from the left-panel, click on `Dashboard`. You'll see 3 dashb
 
 1. Scroll-up and click on the number listed below 400s. Dashboard will change other panels to show just the traffic with response code in 400s. You can see the timeline and the actual messages below. These are related to warnings from last dashboard about dojo files not being found (response code 404).
 
-#### Dashboard for problems on WebSphere traditional
+#### Traditional WebSphere applications
 
 1. Go back to the list of dashboards and click on _WAS-traditional-Problems-K5-20190609_. Similar to the first dashboard for Liberty, this dashboard visualizes message and trace information for WebSphere Application Server traditional.
-1. As before, adjust the time-frame as necessary if no data is rendered.
+1. As before, adjust the time-range as necessary if no data is rendered.
 
-1. Explore the panels and filter through the events to see messages corresponding to just those.
+1. Explore the panels and filter through the events to see messages corresponding to just those events.
 
+## Application Monitoring
+
+Building observability into applications externalizes the internal status of a system to enable operations teams to monitor systems more effectively. It is important that applications are written to produce metrics. When the Customer Order Services application was modernized, we used Microprofile Metrics and it provides a `/metrics` endpoint from where you can access all metrics emitted by the JVM, Open Liberty server and deployed applications. Operations teams can gather the metrics and store them in a database by using tools like Prometheus. The metrics data can then be visualized and analyzed in dashboards, such as Grafana.
+
+### Grafana dashboard
+
+1. From the extracted dashboards directory on your computer, open `grafana` directory and then open `ibm-open-liberty-grafana5-cos-dashboard.yaml`. Copy its contents. This `GrafanaDashboard` custom resource defines a set of dashboards for Customer Order Services application and Open Liberty.
+
+1. In OpenShift concole, click on the `+` icon on the top panel to quickly create a resource. Paste the contents and click on `Create`.
+
+1. In OpenShift console, from the left-panel, select **Networking** > **Routes**.
+
+1. From the _Project_ drop-down list, select `app-monitoring`. 
+1. Click on the route URL (listed under the _Location_ column).
+1. Click on `Log in with OpenShift`. Click on `Allow selected permissions`.
+1. In Grafana, from the left-panel, hover over the dashboard icon and click on `Manage`.
+1. You should see `Liberty-Metrics-Dashboard` on the list. Click on it.
+1. Explore the dashboards. The first 2 are for Customer Order Services application. The rest are for Liberty.
+1. Click on `Customer Order Services - Shopping Cart`. By default, it'll show the data for the last 15 minutes. Adjust the time-range from the top-right as necessary. 
+1. You should see the frequency of requests, number of requests, pod information, min/max request times.
+1. Scroll-down to expand the `CPU` section. You'll see information about process CPU time, CPU system load for pods.
+1. Scroll-down to expand the `Servlets` section. You'll see request count and response times for application servlet as well as health and metrics endpoints.
+1. Explore the other sections.
+
+    ![requesting server dump](extras/images/metrics-dashboard.gif)
 
 ## Day-2 Operations (bonus lab)
 
@@ -100,7 +122,7 @@ A storage must be configured so the generated artifacts can persist, even after 
 
 ### Enable serviceability
 
-Let's enable serviceability option for the 
+Enable serviceability option for the Customer Order Services application. In productions systems, it's recommended that you do this step with the initial deployment of the application - not when you encounter an issue and need to gather server traces or dumps. OpenShift can not attach volumes to running Pods so it'll have to create a new Pod, attach the volume and then take down the old Pod. If the problem is intermittent or hard to reproduce, you may not be able to reproduce on the new instance of server running in the new Pod. The volume can be shared by all Liberty applications that are in the same namespace and the volumes wouldn't be used unless you perform day-2 operation on a particular application - so that should make it easy to enable serviceability with initial deployment.
 
 1. From the left-panel, click on **Operators** > **Installed Operators**.
 1. Ensure that `apps` is selected from the _Project_ drop-down list. 
@@ -165,6 +187,6 @@ You can also request server traces, from an instance of Open Liberty server runn
 
 ## Summary
 
-Congratulations! You've completed the workshop. Great job! Virtual high five!
+Congratulations! You've completed the workshop. Great job! A virtual "High Five" to you!
 
 Check out the [next steps](../resources.md) to continue your journey to cloud!

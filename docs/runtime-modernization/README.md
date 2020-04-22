@@ -69,7 +69,7 @@ Run the following command to start building the image. Make sure to copy the ent
 docker build --tag image-registry.openshift-image-registry.svc:5000/apps/cos .
 ```
 
-### Code changes
+### Library changes
 
 - Made the simple code changes required for the EJB lookups which were recommended by IBM Cloud Transformation Advisor. The three Java classes that should be modified to look up Enterprise JavaBeans differently are shown in the detailed analysis view of IBM Cloud Transformation Advisor:
 
@@ -96,6 +96,79 @@ docker build --tag image-registry.openshift-image-registry.svc:5000/apps/cos .
 - Upgraded to Java EE8. Changed from using annotations from _jackson_ to _jsonb_. For example, changed from `@JsonProperty(value="id")` to `@JsonbProperty(value="id")`.
 
 
+### Modernize with MicroProfile
+
+We used the opportunity to make code changes to modernize some aspects of the application as well. [Eclipse MicroProfile](https://microprofile.io/) is a modular set of technologies designed so that you can write cloud-native microservices. Even though our application is a monolith, we can still take advantage of some of the technologies from MicroProfile.
+
+
+#### Secure application
+
+We updated the application to use a token-based authentication mechanism to authenticate, authorize, and verify user identities. Added MicroProfile JWT to validate security tokens. The application was updated to use Keycloak, which runs on the cluster and will handle authenticating users. It'll also handle registering & storing user account information.
+
+#### Externalize configuration
+
+The application will have to run on many different environments. So it's important to avoid hardcoding environment specific values in your code. Otherwise, you'll have to update code, recompile and containerize it frequently. 
+
+MicroProfile Config separates the configuration from code. You can inject the external configuration into services in the containers without repackaging them. Applications can use MicroProfile Config as a single API to retrieve configuration information from different sources such as system properties, system environment variables, properties files, XML files, or data sources. Of course, you can do all this by yourself, but it'll be a lot of work and code. Add few MicroProfile Config annotations and you'll make your life easier and code alot cleaner.
+
+We used MicroProfile Config to [inject information](https://github.com/IBM/teaching-your-monolith-to-dance/blob/6e197f03b8663813ba806b6f321cb9e5ce92c6f6/app/CustomerOrderServicesWeb/src/org/pwte/example/resources/JWTConfigResource.java#L21) about the application's authenticator (Keycloak in this case). For example, added these 3 lines and at runtime the variable will automatically get the value injected by MicroProfile Config:
+
+  ```java
+  @Inject
+  @ConfigProperty(name = "SSO_URI")
+  private String keycloakURI;
+  ```
+
+#### Determine application's availability
+
+In the last lab, we used `/CustomerOrderServicesWeb/index.html` for readiness and liveness probes, which is not the best indication that application is ready to handle traffic or is healthy to process requests correctly within a reasonable amount of time. What if the database is down? What if application's security layer is not yet ready/unable to handle authentication? The Pod would still be considered ready and healthy and traffic would still be sent to it. All of those requests will fail or would queue up - leading to bigger problems.
+
+MicroProfile Health provides a common REST endpoint format to determine whether a microservice (or in our case a monolith application) is healthy or not. Health can be determined by the service itself and might be based on the availability of necessary resources (for example, a database) and services. The service itself might be running but considered unhealthly if the things it requires for normal operation are unavailable. All of the checks are performed periodically and the result is served as a simple UP or DOWN at `/health/ready` and `/health/live` which can be used for readiness and liveness probes.
+
+We implemented the following health checks:
+- [ReadinessCheck](https://github.com/IBM/teaching-your-monolith-to-dance/blob/6e197f03b8663813ba806b6f321cb9e5ce92c6f6/app/CustomerOrderServicesWeb/src/org/pwte/example/health/ReadinessCheck.java#L17): Keycloak is required to authenticate users. Application should only accept traffic if Keycloak client is up and running.
+
+  ```java
+  URL url = new URL(keycloakURI);
+  con = (HttpURLConnection) url.openConnection();
+  con.setRequestMethod("GET");
+  int status = con.getResponseCode();
+  if (status != 200) {
+    return HealthCheckResponse.named("Readiness").down().build();
+  }
+  return HealthCheckResponse.named("Readiness").up().build();
+  ```
+
+- [LivenessCheck](https://github.com/IBM/teaching-your-monolith-to-dance/blob/f2e9358735a39c5134907e15ae62ba8cb16ad122/app/CustomerOrderServicesWeb/src/org/pwte/example/health/LivenessCheck.java#L15): The requests should be processed within a reasonable amount of time. Monitor thread block times to identify potential deadlocks which can cause the application to hang.
+
+    ```java
+    ThreadMXBean tBean = ManagementFactory.getThreadMXBean();
+    long ids[] = tBean.findMonitorDeadlockedThreads();
+    if (ids !=null) {
+      ThreadInfo threadInfos[] = tBean.getThreadInfo(ids);
+      for (ThreadInfo ti : threadInfos) {
+        double seconds = ti.getBlockedTime() / 1000.0;
+        if (seconds > 60) {
+          return HealthCheckResponse.named("Liveness").down().build();
+        }
+      }
+    }
+    return HealthCheckResponse.named("Liveness").up().build();
+    ```
+
+#### Adding metrics to application
+
+MicroProfile Metrics is used to gather metrics about the time it takes to add an item to cart, retrieve customer information and to count the number of time these operations are performed.
+
+  ```java
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Counted
+  @Timed(name = "getCustomer_timed")
+  public Response getCustomer()
+  {
+  ```
+
 ### Liberty server configuration
 
 The Liberty runtime configuration file `server.xml`was created from the template provided by IBM Cloud Transformation Advisor. Have a look at the final version of the file available [here](https://github.com/IBM/teaching-your-monolith-to-dance/tree/liberty/config/server.xml).
@@ -117,7 +190,7 @@ The Liberty runtime configuration file `server.xml`was created from the template
   - `quickStartSecurity` element allows to secure endpoints such as _/metrics_
 
 
-### Dockerfile
+### Build instructions
 
 The [`Dockerfile`](https://github.com/IBM/teaching-your-monolith-to-dance/tree/liberty/Dockerfile) required to build the immutable image containing the application and Liberty runtime was created from the template provided by IBM Cloud Transformation Advisor. Here is the final version of the file:
 
@@ -246,12 +319,12 @@ Specifying credentials and tokens in plain text is not secure. `Secrets` are use
 
 Let's create 2 secrets, one to store database credentials and another for storing Liberty metrics credentials, which is needed to access the `/metrics` endpoint.
 
-In OpenShift concole, you can click on the `+` button on the top panel anytime to quickly create a resource (as shown below). 
+In OpenShift concole, you can click on the `+` icon on the top panel to quickly create a resource (as shown below). 
 
   ![create secret](extras/images/create-secret.gif)
 
 
-Create a `Secret` for database. Click on the `+` button and paste the following content and click on `Create`.
+Create a `Secret` for database. Click on the `+` icon and paste the following content and click on `Create`.
 ```yaml
 kind: Secret
 apiVersion: v1
@@ -259,12 +332,12 @@ metadata:
   name: db-creds
   namespace: apps
 data:
-  DB_PASSWORD: ZGIyaW5zdDE=
   DB_USER: ZGIyaW5zdDE=
+  DB_PASSWORD: ZGIyaW5zdDE=
 type: Opaque
 ``` 
 
-Similarly, create a secret for Liberty. Click on the `+` button, from the top panel. Paste the following content and click on `Create`.
+Similarly, create a secret for Liberty. Click on the `+` icon and paste the following content and click on `Create`.
 
 ```yaml
 kind: Secret
@@ -273,8 +346,8 @@ metadata:
   name: liberty-creds
   namespace: apps
 stringData:
-  password: admin
   username: admin
+  password: admin
 type: Opaque
 ```
 
@@ -319,8 +392,6 @@ spec:
     termination: reencrypt
     insecureEdgeTerminationPolicy: Redirect
   env:
-    - name: SEC_TLS_TRUSTDEFAULTCERTS
-      value: 'true'
     - name: SSO_REALM
       value: Galaxy
     - name: SSO_CLIENT_ID
@@ -334,6 +405,8 @@ spec:
     - name: JWT_JWKS_URI
       value: >-
         https://keycloak-keycloak.ENTER_YOUR_ROUTER_HOSTNAME_HERE/auth/realms/Galaxy/protocol/openid-connect/certs
+    - name: SEC_TLS_TRUSTDEFAULTCERTS
+      value: 'true'
     - name: DB_HOST
       value: cos-db-liberty.db.svc
   envFrom:
@@ -358,12 +431,12 @@ spec:
 
 - Notice that the parameters are similar to the `AppsodyApplication` custom resource (CR) you used in the operational modernization lab. `OpenLibertyApplication` in addition allows Liberty specific configurations (day-2 operations, single sign-on).
 
-- The application image you earlier pushed to image registry is specified for `applicationImage` parameter.
+- The application image you pushed earlier to internal image registry is specified for `applicationImage` parameter.
 - MicroProfile Health endpoints `/health/ready` and `/health/live` are used for readiness and liveness probes.
 - Secured service and route are configured with necessary certificates.
 - Environment variables have been defined to be passed on to the running container. Information for the Keycloak client you setup previously is specified using environment variables (e.g `SSO_REALM`). Before deploying, you'll replace `ENTER_YOUR_ROUTER_HOSTNAME_HERE` (within the URLs) with the hostname of the router in your cluster.
 - The host of the database is specified using its _Service_ address `cos-db-liberty.db.svc` and its credentials are passed in using the _Secret_ `db-creds` you created earlier. The `envFrom` parameter is used to define all of the Secret’s data as environment variables. The key from the _Secret_ becomes the environment variable name.
-- Enabled application monitoring so that Prometheus can scrape the information provided at MicroProfile Metric's `/metrics` endpoint from Liberty. The `/metrics` endpoint is protected, hence the credentials are provided using the _Secret_ `liberty-creds` you created earlier.
+- Enabled application monitoring so that Prometheus can scrape the information provided by MicroProfile Metric's `/metrics` endpoint in Liberty. The `/metrics` endpoint is protected, hence the credentials are provided using the _Secret_ `liberty-creds` you created earlier.
 
 
 ### Deploy application
