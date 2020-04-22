@@ -13,36 +13,77 @@ IBM Application Navigator provides a single dashboard to manage your application
 1. From the _Project_ drop-down list, select `kappnav`. 
 1. Click on the route URL (listed under the _Location_ column).
 1. Click on `Log in with OpenShift`. Click on `Allow selected permissions`.
-1. Notice the list of applications you deployed. Click on them to see the resources that are part of the applications. 
+1. Notice the list of applications you deployed. Click on them to see the resources that are part of the applications.
 
-As you modernize your applications, some workload would still be running on traditional environments. Application Navigator, included as part of IBM Cloud Pak for Applications, supports adding WebSphere Network Deployment (ND) environments. So they can be managed from the same dashboard. Importing an existing WebSphere Application Server ND cell creates a custom resource to represent the cell. Application Navigator automatically discovers enterprise applications that are deployed on the cell and creates custom resources to represent those applications. Application Navigator periodically polls the cell to keep the state of the resources synchronized with the cell. 
+As you modernize your applications, some workload would still be running on traditional environments. IBM Application Navigator, included as part of IBM Cloud Pak for Applications, supports adding WebSphere Network Deployment (ND) environments. So they can be managed from the same dashboard. Importing an existing WebSphere Application Server ND cell creates a custom resource to represent the cell. Application Navigator automatically discovers enterprise applications that are deployed on the cell and creates custom resources to represent those applications. Application Navigator periodically polls the cell to keep the state of the resources synchronized with the cell. 
 
-Application Navigator also provides links to other dashboards that you already use and are familiar with. You can also define your own custom resources using the extension mechanism provided by Application Navigator. 
+Application Navigator also provides links to other dashboards that you already use and are familiar with. You can also define your own custom resources using the extension mechanism provided by Application Navigator.
 
-## Logging
+## Application Logging
+
+Pod processes running in OpenShift frequently produce logs. To effectively manage this log data and ensure no loss of log data occurs when a pod terminates, a log aggregation tool should be deployed on the cluster. Log aggregation tools help users persist, search, and visualize the log data that is gathered from the pods across the cluster. Let's look at application logging with log aggregation using EFK (Elasticsearch, Fluentd, and Kibana). Elasticsearch is a search and analytics engine. Fluentd to receive, clean and parse the log data. Kibana lets users visualize data with charts and graphs in Elasticsearch.
+
+### Launch Kibana
 
 1. In OpenShift console, from the left-panel, select **Networking** > **Routes**.
-
 1. From the _Project_ drop-down list, select `openshift-logging`. 
 1. Click on the route URL (listed under the _Location_ column).
 1. Click on `Log in with OpenShift`. Click on `Allow selected permissions`.
-1. From the left-panel, click on `Management`.
-1. Click on `Index Patterns`. Click on `project.*`. This index contains only a set of default fields and does not include all of the fields from the deployed application’s JSON log object. Therefore, the index needs to be refreshed to have all the fields from the application’s log object available to Kibana. Click on the refresh icon and then click on `Refresh fields`.
+1. In Kibana console, from the left-panel, click on `Management`.
+
+1. Click on `Index Patterns`. Click on `project.*`. 
+    - This index contains only a set of default fields and does not include all of the fields from the deployed application’s JSON log object. Therefore, the index needs to be refreshed to have all the fields from the application’s log object available to Kibana. 
+1. Click on the refresh icon and then click on `Refresh fields`.
+
+### Import dashboards
+
+1. Download [zip file](https://ibm.box.com/s/eg2ycxtymrhefpvfbullvos08avc18r0) containing dashboards to your computer and unzip to a local directory.
 1. Let's import dashboards for Liberty and WAS. From the left-panel, click on `Management`. Click on `Saved Objects` tab and then click on `Import`.
-1. Select `ibm-open-liberty-kibana5-problems-dashboard.json` file. When prompted, click the `Yes, overwrite all` option.
-1. 
+1. Navigate to the _kibana_ sub-directory and select `ibm-open-liberty-kibana5-problems-dashboard.json` file. When prompted, click `Yes, overwrite all` option. It'll take few seconds for the dashboard to show up on the list.
+
+1. Repeat the steps to import `ibm-open-liberty-kibana5-traffic-dashboard.json` and `ibm-websphere-traditional-kibana5-dashboard.json`.
+
+### Explore dashboards
+
+In Kibana console, from the left-panel, click on `Dashboard`. You'll see 3 dashboards on the list. The first 2 are for Liberty. The last one is for WAS traditional. Read the description next to each dashboard.
+
+#### Dashboard for problems on Liberty
+
+1. Click on _Liberty-Problems-K5-20191122_. This dashboard visualizes message, trace and FFDC information.
+1. By default, data from the last 15 minutes are rendered. Adjust the time frame (from the top-right corner), so that it includes data from when you tried the Open Liberty application.
+1. Once the data is rendered, you'll see some information about the namespace, pod, containers where events/problems occurred along with a count for each. 
+1. Scroll down to `Liberty Potential Problem Count` section which lists the number of ERROR, FATA, SystemErr and WARNING events. You'll likely see some WARNING events.
+1. Below that you'll see `Liberty Top Message IDs`. This helps to quickly identify most occurring events and their timeline.
+1. Scroll-up and click on the number below WARNING. Dashboard will change other panels to show just the events for warnings. Using this, you can determine: whether the failures occurred on one particular pod/server or in multiple instances, whether they occurred around the same or different time.
+
+1. Scroll-down to the actual warning messages. In this case some files from dojo were not found. We should fix those warnings.
 
 
-## Monitoring
+#### Dashboard for Liberty traffic
+
+1. Go back to the list of dashboards and click on _Liberty-Traffic-K5-20191122_. This dashboard helps to identify failing or slow HTTP requests.
+1. As before, adjust the time-frame as necessary if no data is rendered.
+1. You'll see some information about the namespace, pod, containers for the traffic along with a count for each. 
+1. Scroll-down to `Liberty Error Response Code Count` section which lists the number of requests failed with HTTP response codes in 400s and 500s ranges.
+1. Scroll-down to `Liberty Top URLs` which lists the most frequently accessed URLs
+    - The _/health_ and _/metrics_ endpoints are running on the same server and are queried frequently for probes and for scraping information. You can add a filter to include/exclude certain applications.
+1. On the right-hand side, you'll see list of endpoints that had the slowest response times.
+
+1. Scroll-up and click on the number listed below 400s. Dashboard will change other panels to show just the traffic with response code in 400s. You can see the timeline and the actual messages below. These are related to warnings from last dashboard about dojo files not being found (response code 404).
+
+#### Dashboard for problems on WebSphere traditional
+
+1. Go back to the list of dashboards and click on _WAS-traditional-Problems-K5-20190609_. Similar to the first dashboard for Liberty, this dashboard visualizes message and trace information for WebSphere Application Server traditional.
+1. As before, adjust the time-frame as necessary if no data is rendered.
+
+1. Explore the panels and filter through the events to see messages corresponding to just those.
 
 
+## Day-2 Operations (bonus lab)
 
-## Day-2 Operations
+You may need to gather server traces and/or dumps for analyzing some problems. Open Liberty Operator makes it easy to gather these on a server running inside a container.
 
-You may need to gather traces and/or JVM dumps for analyzing some problems. Open Liberty Operator makes it easy to gather these on a server running inside a container.
-
-A storage must be configured so the generated artifacts can persist, even after the Pod is deleted. This storage can be shared by all instances of the Open Liberty applications.
-RedHat OpenShift on IBM Cloud utilizes the storage capabilities provided by IBM Cloud. Let's create a request for storage.
+A storage must be configured so the generated artifacts can persist, even after the Pod is deleted. This storage can be shared by all instances of the Open Liberty applications. RedHat OpenShift on IBM Cloud utilizes the storage capabilities provided by IBM Cloud. Let's create a request for storage.
 
 ### Request storage
 
@@ -55,9 +96,11 @@ RedHat OpenShift on IBM Cloud utilizes the storage capabilities provided by IBM 
 1. Request 1 GiB by entering `1` in the text box for `Size`.
 1. Click on `Create`.
 1. Created Persistent Volume Claim will be displayed. The `Status` field would display `Pending`. Wait for it to change to `Bound`. It may take 1-2 minutes.
-1. Once bound, you'll see the created volume displayed under `Persistent Volume` field.
+1. Once bound, you should see the volume displayed under `Persistent Volume` field.
 
 ### Enable serviceability
+
+Let's enable serviceability option for the 
 
 1. From the left-panel, click on **Operators** > **Installed Operators**.
 1. Ensure that `apps` is selected from the _Project_ drop-down list. 
@@ -72,23 +115,56 @@ RedHat OpenShift on IBM Cloud utilizes the storage capabilities provided by IBM 
         volumeClaimName: liberty
     ```
 1. Click on `Save`.
-1. From the left-panel, click on **Workloads** > **Pods**. Wait till the pod's _Readiness_ column change to _Ready_.
-1. Click on the pod and copy its name. This is needed for requesting JVM dump and trace.
+1. From the left-panel, click on **Workloads** > **Pods**. Wait till the pod's _Readiness_ column changes to _Ready_.
+1. Pod's name is needed for requesting server dump and trace in the next sections. Click on the pod and copy the value under `Name` field.
 
-### Request JVM dump
+    ![requesting server dump](extras/images/pod-name.png)
+
+### Request server dump
+
+You can request a snapshot of the server status including different types of server dumps, from an instance of Open Liberty server running inside a Pod, using Open Liberty Operator and `OpenLibertyDump` custom resource (CR). 
 
 1. From the left-panel, click on **Operators** > **Installed Operators**.
 
 1. From the `Open Liberty Operator` row, click on `Open Liberty Dump` (displayed under `Provided APIs` column).
-1. Click on `Create OpenLibertyDump` button.
+1. Click on `Create OpenLibertyDump` button. 
 1. Replace `Specify_Pod_Name_Here` with the pod name you copied earlier.
-1. The `include` field specifies the type of JVM dumps to request. Heap and thread dumps are specified by default. Leave it as is.
+1. The `include` field specifies the type of server dumps to request. Heap and thread dumps are specified by default. Let's use the default values.
 1. Click on `Create`.
 1. Click on `example-dump` from the list.
+1. Scroll-down to the `Conditions` section and you should see `Started` status with `True` value. Wait for the operator to complete the dump operation. You should see status `Completed` with `True` value.
 
+    ![requesting server dump](extras/images/day2-dump-operation.gif)
+
+### Request server traces
+
+You can also request server traces, from an instance of Open Liberty server running inside a Pod, using `OpenLibertyTrace` custom resource (CR).
+
+1. From the left-panel, click on **Operators** > **Installed Operators**.
+
+1. From the `Open Liberty Operator` row, click on `Open Liberty Trace`.
+1. Click on `Create OpenLibertyTrace` button.
+1. Replace `Specify_Pod_Name_Here` with the pod name you copied earlier.
+1. The `traceSpecification` field specifies the trace string to be used to selectively enable trace on Liberty server. Let's use the default value. 
+1. Click on `Create`.
+1. Click on `example-trace` from the list.
+1. Scroll-down to the `Conditions` section and you should see `Enabled` status with `True` value. 
+    - Note: Once the trace has started, it can be stopped by setting the `disable` parameter to true. Deleting the CR will also stop the tracing. Changing the `podName` will first stop the tracing on the old Pod before enabling traces on the new Pod. You can also specify the maximum trace file size and the maximum number of files before rolling over using `maxFileSize` and `maxFiles` parameters.
+
+    ![requesting server trace](extras/images/day2-trace-operation.gif)
+
+### Accessing the generated files
+
+1. The generated trace and dump files should now be in the persistent volume. You used storage from IBM Cloud and to access those files, we have to go through a number of steps using different tools. But since the volume is attached to the Pod, we can easily verify that those files are present using Pod's terminal.
+
+1. From the left-panel, click on **Workloads** > **Pods**. Click on the pod and then click on `Terminal` tab. 
+1. Enter `ls -R serviceability/apps` to list the files. The shared volume is mounted at `serviceability` folder. The sub-folder `apps` is the namespace of the Pod. You should see a zip file for dumps and trace log files. These are produced by the day-2 operations you performed.
+1. Using Open Liberty Operator, you learned to perform day-2 operations on a Liberty server running inside a container, which is deployed to a Pod.
+
+    ![requesting server dump](extras/images/day2-files.gif)
 
 ## Summary
 
-Congratulations! You've completed the workshop! Great job! Virtual high five!
+Congratulations! You've completed the workshop. Great job! Virtual high five!
 
 Check out the [next steps](../resources.md) to continue your journey to cloud!

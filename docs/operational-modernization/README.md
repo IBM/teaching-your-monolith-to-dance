@@ -1,4 +1,4 @@
-# Cloud Pak for Applications: Operational Modernization Solution
+# Operational Modernization Solution
 
 ## Introduction
 
@@ -292,7 +292,9 @@ We'll use the following `AppsodyApplication` custom resource (CR), to deploy the
 1. Click on `Pods` tab. 
 1. Wait until the `Status` column displays _Running_ and `Readiness` column displays _Ready_. These indicate that the application within the container is running and is ready to handle traffic.
 
-    [comment]: <> (Optional exercise: delete the pod. Another pod should be created, but takes awhile for it to be ready. Shows that traditional WAS is slow, but Liberty as they'll see later is faster)
+    ![Dev Running](extras/images/pod-status.png)
+
+  [comment]: <> (Optional exercise: delete the pod. Another pod should be created, but takes awhile for it to be ready. Shows that traditional WAS is slow, but Liberty as they'll see later is faster)
 
 
 ## Access the application
@@ -313,10 +315,10 @@ We'll use the following `AppsodyApplication` custom resource (CR), to deploy the
 
 1. As the items are added, they'll be shown under _Current Shopping Cart_ (on the right side).
 
-    ![Dev Running](extras/images/add-item-to-cart.gif)
+    ![Adding item to cart](extras/images/add-item-to-cart.gif)
 
 ## Summary
 
-Congratulations! You containerized and deployed a monolith application to cloud! You've completed the first section of the workshop.
+Awesome! You containerized and deployed a monolith application to cloud! You've completed the first section of the workshop.
 
 Let's continue with the workshop. Head over to the [Runtime Modernization lab](../runtime-modernization/README.md).

@@ -1,16 +1,12 @@
-# Application Modernization: WebSphere Runtime Modernization Solution
+# Runtime Modernization Solution
 
 ## Introduction
 
 **Runtime modernization** moves an application to a 'built for the cloud' runtime with the least amount of effort. **Open Liberty** is a fast, dynamic, and easy-to-use Java application server. Ideal for the cloud, Liberty is open sourced, with fast startup times (<2 seconds), no server restarts to pick up changes, and a simple XML configuration.
 
-However, Liberty doesn't support all of the legacy Java EE and WebSphere proprietary functionality and some code changes maybe required to move an existing application to the new runtime. Effort is also required to move the application configuration from traditional WebSphere to Liberty's XML configuration files.
+Liberty however doesn't support all of the legacy Java EE and WebSphere proprietary functionality and some code changes maybe required to move an existing application to the new runtime. Effort is also required to move the application configuration from traditional WebSphere to Liberty's XML configuration files.
 
 **This path gets the application on to a cloud-ready runtime container which is easy to use and portable. In addition to the necessary library changes, some aspects of the application was modernized. However, it has not been 'modernized' to a newer architecture such as micro-services** 
-
-  The diagram below shows the high level decision flow where IBM Cloud Transformation Advisor is used to analyze existing assets and a decision is made to move the monolithic application to the Liberty container.
-
-  ![Liberty flow](extras/images/libertyflow.jpg)
 
 This repository holds a solution that is the result of a **runtime modernization** for an existing WebSphere Java EE application that was moved from WebSphere ND v8.5.5 to Liberty and deployed by the IBM CloudPak for Applications to RedHat OpenShift.
 
@@ -28,7 +24,7 @@ We'll use the same [Customer Order Services application](../common/application.m
 
 As before, [IBM Cloud Transformation Advisor](https://www.ibm.com/cloud/garage/practices/learn/ibm-transformation-advisor) was used to analyze the existing Customer Order Services application and the WebSphere ND runtime. The steps were:
 
-1. Installed Transformation Advisor Local.
+1. Used the IBM Cloud Transformation Advisor available as part of IBM Cloud Pak for Applications. Transformation Advisor Local (Beta) can also be used.
 
 2. Downloaded and executed the **Data Collector** against the existing WebSphere ND runtime.
 
@@ -46,7 +42,7 @@ As before, [IBM Cloud Transformation Advisor](https://www.ibm.com/cloud/garage/p
 
 - **The user of system provided Apache Wink APIs requires configuration** To use system-provided third-party APIs in Liberty applications, you must configure the applications to include the APIs. In WebSphere Application Server traditional, these APIs are available without configuration. This is a configuration only change and can be achieved by using a `classloader` definition in the Liberty server.xml file.
 
-- In summary, some minimal code changes are required to move this application to the Liberty runtime and the decision was taken to proceed with these code changes.
+- In summary, some minimal code changes were required to move this application to the Liberty runtime and the decision was taken to proceed with these code changes.
 
 **Homework**: After you complete this workshop, review the step-by-step instructions on how to replicate these steps from the [Next Steps](../resources.md) section. Then try Transformation Advisor with one of your applications to migrate it to Liberty.
 
@@ -57,22 +53,23 @@ In this section, you'll learn how to build a Docker image for Customer Order Ser
 
 Building this image could take around ~3 minutes (multi-stage build that compiles the code, which takes extra time). As before, let's kick that process off and then come back to learn what you did.
 
-You'll need the web terminal. If it's not open, follow the instructions [here](../common/web-terminal.md) to access it.
+You'll need the web terminal (same as the one from previous lab). If it's not open, follow the instructions [here](../common/oc-login.md) to login to OpenShift cluster via the web terminal.
 
-Clone the GitHub repo with the lab artifacts for Liberty (this are different from the artifacts cloned earlier). Run the following commands on your web terminal:
+Clone the GitHub repo with the lab artifacts for Liberty (these are different from the artifacts cloned in last lab). Run the following commands on your web terminal:
 ```
 cd / && mkdir liberty && cd liberty
 git clone --branch liberty https://github.com/IBM/teaching-your-monolith-to-dance.git
 cd teaching-your-monolith-to-dance
+ls
 ```
 
-Run the following command in web terminal to start building the image. While the image is building continue with rest of this section:
+Run the following command to start building the image. Make sure to copy the entire command, including the `"."` at the end. While the image is building continue with rest of this section:
 
 ```
 docker build --tag image-registry.openshift-image-registry.svc:5000/apps/cos .
 ```
 
-The **build** phase made changes to source code and created the Liberty configuration artifacts. The steps were:
+### Code changes
 
 - Made the simple code changes required for the EJB lookups which were recommended by IBM Cloud Transformation Advisor. The three Java classes that should be modified to look up Enterprise JavaBeans differently are shown in the detailed analysis view of IBM Cloud Transformation Advisor:
 
@@ -96,11 +93,33 @@ The **build** phase made changes to source code and created the Liberty configur
   ...
   ```
 
-- The Liberty runtime configuration file `server.xml`was created from the template provided by IBM Cloud Transformation Advisor. The final versions of the file can be found here:
+- Upgraded to Java EE8. Changed from using annotations from _jackson_ to _jsonb_. For example, changed from `@JsonProperty(value="id")` to `@JsonbProperty(value="id")`.
 
-    - [server.xml](https://github.com/IBM/teaching-your-monolith-to-dance/tree/liberty/config/server.xml)
 
-- The [`Dockerfile`](https://github.com/IBM/teaching-your-monolith-to-dance/tree/liberty/Dockerfile) required to build the immutable image containing the application and Liberty runtime was created from the template provided by IBM Cloud Transformation Advisor. Here is the final version of the file:
+### Liberty server configuration
+
+The Liberty runtime configuration file `server.xml`was created from the template provided by IBM Cloud Transformation Advisor. Have a look at the final version of the file available [here](https://github.com/IBM/teaching-your-monolith-to-dance/tree/liberty/config/server.xml).
+
+  - The necessary features, including those for MicroProfile, are enabled (e.g. `jdbc-4.2, jaxrs-2.1, mpHealth-2.1`).
+  - An HTTP endpoint is configured by:
+    ```xml
+    <httpEndpoint httpPort="-1" httpsPort="9443" accessLoggingRef="accessLogging" id="defaultHttpEndpoint"/>
+    ```
+  
+  - Note that access logging is enabled to record all inbound client requests handled by HTTP endpoint. We'll visualize this data later in dashboard to identify and analyze potential problems. 
+
+  - Application with appropriate security role and classloader visibility is specified by `application` element.
+
+  - Database is configured using the `dataSource` element. Note that Liberty variables are used for certain attributes (e.g. `serverName="${DB_HOST}"`). This will allow the containerized application to be deployed to different environments (e.g production database vs testing database).
+
+  - The configuration to process the MicroProfile JWT token is defined using `mpJWT` element.
+
+  - `quickStartSecurity` element allows to secure endpoints such as _/metrics_
+
+
+### Dockerfile
+
+The [`Dockerfile`](https://github.com/IBM/teaching-your-monolith-to-dance/tree/liberty/Dockerfile) required to build the immutable image containing the application and Liberty runtime was created from the template provided by IBM Cloud Transformation Advisor. Here is the final version of the file:
 
   ```dockerfile
   ## Build stage
@@ -122,28 +141,29 @@ The **build** phase made changes to source code and created the Liberty configur
 
   - This is a multi-stage Dockerfile, as indicated by the 2 instructions with `FROM`. The first stage builds the application using Maven. It uses the base image from Maven, cipies the application source and then builds using Maven commands. The second stage is the actual application image, which uses the _ear_ file produced by the first stage. 
 
-  - The base image for our application image is `openliberty/open-liberty`, which is the [official image](https://github.com/OpenLiberty/ci.docker) for Open Liberty. The tag `full-java8-openj9-ubi` indicates the version of Java and that this image is based on Red Hat's Universal Base Image (UBI). We recommend using UBI images. The `full` keyword indicates that this image comes with additional Liberty features. There is also an image with `kernel`, which comes with the bare minimum server. In this case we are using the latest available image. But you can specify a specific Open Liberty release (for example: `20.0.0.3-full-java8-openj9-ubi`).
+  - The base image for this application image is `openliberty/open-liberty`, which is the [official image](https://github.com/OpenLiberty/ci.docker) for Open Liberty. The tag `full-java8-openj9-ubi` indicates the version of Java and that this image is based on Red Hat's Universal Base Image (UBI). We recommend using UBI images. The `full` keyword indicates that this image comes with additional Liberty features. There is also an image with `kernel`, which comes with the bare minimum server. In this case we are using the latest available image. But you can specify a specific Open Liberty release (for example: `20.0.0.3-full-java8-openj9-ubi`).
 
-  - We need to copy everything that the application needs into the container. So we copy the necessary db2 drivers. 
+  - Copy everything that the application needs into the container including the necessary db2 drivers.
   
   - For security, Liberty containers run as non-root. This is infact a requirement for running certified containers in OpenShift. The `COPY` instruction by default copies as root. So change user and group using `--chown=1001:0` command.
 
-  - Then, copy Liberty's configuration file `server.xml`.
+  - Next, copy Liberty's configuration file `server.xml`.
 
-  - Then we copy application ear, produced by the first stage. This is indicated by the `--from=builder`.
+  - Then copy application ear, produced by the first build stage. This is indicated by the `--from=builder`.
 
-  - Then we run `/configure.sh` which will grow image to be fit-for-purpose.
+  - As last step run `/configure.sh` which will grow image to be fit-for-purpose.
 
-  Each instruction in the Dockerfile is a layer and each layer is cached. You should always specify the volatile artifacts towards the end.
+  Remember that each instruction in the Dockerfile is a layer and each layer is cached. You should always specify the volatile artifacts towards the end.
 
---------
+
+### Build image
 
 Go back to the web terminal to check on the image build.
 
-You should see the following message if image was successfully built. Please wait if it's still building.:
+You should see the following message if image was successfully built. Please wait if it's still building:
 
 ```
-Successfully tagged image-registry.openshift-image-registry.svc:5000/apps/cos
+Successfully tagged image-registry.openshift-image-registry.svc:5000/apps/cos:latest
 ```
 
 Validate that image is in the repository by running command:
@@ -159,6 +179,13 @@ REPOSITORY                                                           TAG        
 image-registry.openshift-image-registry.svc:5000/apps/cos            latest                  73e50e797849        4 minutes ago          859MB
 openliberty/open-liberty                                             full-java8-openj9-ubi   329623a556ff        5 minutes ago          734MB
 ```
+
+Before we push the image to OpenShift's internal image registry, create a separate project named `apps`. Use the OpenShift console this time to create a project.
+- Click on **Home** > **Projects**. 
+- Click on `Create Project` button.
+- Enter `apps` for the _Name_ field and click on `Create`.
+
+Go back to web terminal. 
 
 Push the image to OpenShift's internal image registry, which could take upto a minute:
 
@@ -183,13 +210,13 @@ In OpenShift console, from the left-panel, click on **Builds** > **Image Streams
 
 ## Deploy
 
-Let's complete the pre-requisites for the application before we deploy the modernized application with Liberty runtime to OpenShift.
+Let's complete the pre-requisites for the modernized application with Liberty runtime before we deploy it to OpenShift.
 
-Customer Order Services application uses DB2 as its database. To deploy it to Liberty, a separate instance of the database is already configured in the OpenShift cluster you are using.
+Customer Order Services application uses DB2 as its database. To deploy it to Liberty, a separate instance of the database is already configured in the OpenShift cluster you are using. The database is exposed within the cluster using a _Service_ and the application references database using the address of the _Service_.
 
 ### Keycloak setup
 
-We need to setup a client in Keycloak to handle user authentication for the application. Keycloak runs on your cluster and will handle registering & storing user account information and authenticating the users.
+Keycloak runs on your cluster and will handle authenticating users. It'll also handle registering & storing user account information. We need to setup a client in Keycloak to handle user authentication for the Customer Order Services application. 
 
 1. In OpenShift console, from the left-panel, click on **Networking** > **Routes**.. Then select `keycloak` from the _Project_ drop-down list.
 
@@ -197,14 +224,15 @@ We need to setup a client in Keycloak to handle user authentication for the appl
 
 1. Click on `Administration Console`. Enter `admin` for both username and password.
 
-1. From the menu options on the left, hover over `Master` and click on `Add realm`.
+1. From the menu options on the left, hover over `Master` and click on `Add realm`. 1. Enter _Galaxy_ for the `Name` field and click on `Create`.
     - A realm manages a set of users, credentials, roles, and groups. A user belongs to and logs into a realm. Realms are isolated from one another and can only manage and authenticate the users that they control.
 
-1. Enter _Galaxy_ for the `Name` field and click on `Create`.
+      ![Keycloak realm](extras/images/keycloak-realm.gif)
 
-1. Click on `Login` tab. Turn on `User registration`. Click on `Save`. This provides new users the option to register.
+1. Configure the realm that you created. In the following two steps, ensure that you click on `Save` before clicking on another tab. 
+    1. Click on `Login` tab. Turn on `User registration`. Click on `Save`. This provides new users the option to register.
 
-1. Click on `Tokens` tab. Set `Access Token Lifespan` to _2 hours_. Click on `Save`. This specifies the maximum time before an access token is expired.
+    1. Click on `Tokens` tab. Set `Access Token Lifespan` to _120 minutes_. Click on `Save`. This specifies the maximum time before an access token is expired.
 
 1. From the menu options on the left, select `Clients`.
 
@@ -218,10 +246,12 @@ Specifying credentials and tokens in plain text is not secure. `Secrets` are use
 
 Let's create 2 secrets, one to store database credentials and another for storing Liberty metrics credentials, which is needed to access the `/metrics` endpoint.
 
-To create a `Secret` for database, click on the `+` button, from the top panel. Paste the following content and click on `Create`.
+In OpenShift concole, you can click on the `+` button on the top panel anytime to quickly create a resource (as shown below). 
 
-[comment]: <> (Todo: add screenshot for the + icon)
+  ![create secret](extras/images/create-secret.gif)
 
+
+Create a `Secret` for database. Click on the `+` button and paste the following content and click on `Create`.
 ```yaml
 kind: Secret
 apiVersion: v1
@@ -331,26 +361,30 @@ spec:
 - The application image you earlier pushed to image registry is specified for `applicationImage` parameter.
 - MicroProfile Health endpoints `/health/ready` and `/health/live` are used for readiness and liveness probes.
 - Secured service and route are configured with necessary certificates.
-- Environment variables have been defined to be passed on to the running container. It specifies the information for the Keycloak client you setup previously. The host of the database is specified using it's Service address and its credentials are passed in using the _Secret_ `db-creds` you created earlier. 
+- Environment variables have been defined to be passed on to the running container. Information for the Keycloak client you setup previously is specified using environment variables (e.g `SSO_REALM`). Before deploying, you'll replace `ENTER_YOUR_ROUTER_HOSTNAME_HERE` (within the URLs) with the hostname of the router in your cluster.
+- The host of the database is specified using its _Service_ address `cos-db-liberty.db.svc` and its credentials are passed in using the _Secret_ `db-creds` you created earlier. The `envFrom` parameter is used to define all of the Secret’s data as environment variables. The key from the _Secret_ becomes the environment variable name.
 - Enabled application monitoring so that Prometheus can scrape the information provided at MicroProfile Metric's `/metrics` endpoint from Liberty. The `/metrics` endpoint is protected, hence the credentials are provided using the _Secret_ `liberty-creds` you created earlier.
 
 
 ### Deploy application
 
-1. In OpenShift console, from the left-panel, click on **Operators** > **Installed Operators**.
+1. Before deploying the application, enable monitoring by adding the necessary label to namespace as shown below. In OpenShift console, from the left-panel, click on **Administration** > **Namespaces**. Click on the menu-options for `apps` namespace and click on `Edit Labels`. Copy and paste `app-monitoring=true` into the text box and click `Save`.
+
+    ![Add label to namespace](extras/images/add-monitor-label.gif)
+
+1. From the left-panel, click on **Operators** > **Installed Operators**.
 
 1. Ensure that `apps` is selected from the `Project` drop-down list. 
 1. You should see `Open Liberty Operator` on the list. From the `Provided APIs` column, click on `Open Liberty Application`.
 1. Click on `Create OpenLibertyApplication` button.
-1. Delete the default template. Copy and paste the above `OpenLibertyApplication` custom resource (CR).
-1. Under `env` variables, replace the 3 instances of `ENTER_YOUR_ROUTER_HOSTNAME_HERE` (within the URLs) with the hostname of the router in your cluster. To get just the hostname, run command `oc get route -n keycloak -o yaml | grep Hostname | sed 's/^.*: //'` on web terminal and then copy the output value. The hostname is stored inside the route. Above command finds the line with hostname and retrieves its value. 
+1. Delete the default template. Copy and paste the above `OpenLibertyApplication` custom resource (CR). Under `env` variables, replace the 3 instances of `ENTER_YOUR_ROUTER_HOSTNAME_HERE` (within the URLs) with the hostname of the router in your cluster. To get just the hostname, run command `oc get route -n keycloak -o yaml | grep Hostname | sed "s/^.*: //"` on web terminal and then copy the output value. The hostname is stored inside the route. Above command finds the line with hostname and retrieves its value. 
 1. Click on `Create` button.
 1. Click on `cos` from the list. 
 1. Navigate down to `Conditions` section and wait for `Reconciled` type to display `True` in Status column. This means Open Liberty Operator had processed the configurations you specified.
 1. Click on the `Resources` tab. The resources that the operator created will be listed: _Deployment_, _Service_ and _Route_.
 1. On the row with `Deployment` as `Kind`, click on `cos-was` to get to the Deployment.
 1. Click on `Pods` tab. 
-1. Wait till the `Status` column displays _Running_ and `Readiness` column displays _Ready_. These indicate that the application within the container is running and is ready to handle traffic.
+1. Wait until the `Status` column displays _Running_ and `Readiness` column displays _Ready_. These indicate that the application within the container is running and is ready to handle traffic.
 
 
 ### Complete Keycloak setup
@@ -359,13 +393,15 @@ spec:
 
 1. Ensure that `apps` is selected from the _Project_ drop-down list. Right-click on the Route URL and copy link address. 
 
-1. Go back to Keycloak console. If you had closed the Keycloak tab then select `keycloak` from the _Project_ drop-down list and click on the route URL.
+1. Go back to Keycloak console. If you had closed the Keycloak tab then select `keycloak` from the _Project_ drop-down list and click on the route URL. If prompted, enter `admin` for both username and password.
 
-1. Click on `Clients`. Click on _cos_app_ under `Client ID` column.
+1. From the left-panel, click on `Clients`. Click on _cos_app_ under `Client ID` column.
 
-1. Paste the route URL into `Valid Redirect URIs` field and add `*` at the end of the value.
+1. Paste the route URL into `Valid Redirect URIs` field and add `*` at the end of the value. Ensure that the value ends with `/*` (as shown below).
 
 1. Enter `+` into `Web Origins` field. This is necessary to enable Cross-Origin Resource Sharing (CORS).
+
+    ![create secret](extras/images/keycloak-valid-uri.png)
 
 1. Apply the changes by clicking on the `Save` button at the bottom.
 
@@ -393,6 +429,6 @@ spec:
 
 Congratulations! You've completed the second section of the workshop! 
 
-This application has been modified from the initial WebSphere ND v8.5.5 version to run on Liberty and deployed by the IBM CloudPak for Applications.
+This application has been modified from the initial WebSphere ND v8.5.5 version to run on modern & cloud-native runtime Open Liberty and deployed by IBM Cloud Pak for Applications to RedHat OpenShift.
 
 Let's continue with the workshop. Head over to the [Application Management lab](../application-management/README.md).

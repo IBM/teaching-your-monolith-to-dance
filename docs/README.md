@@ -6,11 +6,11 @@ There are several approaches to application modernization and provided are key r
 
 ### Operational Modernization
 
-* Repackage the application to deploy within a container but maintaining a monolith application without changes to the application or runtime. This solution uses Appsody Operator, available as part of IBM Cloud Pak for Applications, to deploy and manage the containarized application. 
+* Repackage the application to deploy within a container but maintaining a monolith application without changes to the application or runtime. This solution uses Appsody Operator, supported by IBM Cloud Pak for Applications, to deploy and manage the containarized application. 
 
 ### Runtime Modernization
 
-* Update the application runtime to Open Liberty, a suitable cloud-native framework, and deploy on Red Hat OpenShift. Modernize some aspects of the application by taking advantage of [MicroProfile](https://microprofile.io/) specifications, such as Health, Metrics, JWT, Config and OpenAPI. This solution uses Open Liberty Operator, also available as part of IBM Cloud Pak for Applications, to deploy and manage the modernized application.
+* Update the application runtime to Open Liberty, a suitable cloud-native framework, and deploy on Red Hat OpenShift. Modernize some aspects of the application by taking advantage of [MicroProfile](https://microprofile.io/) specifications, such as Health, Metrics, JWT, Config and OpenAPI. This solution uses Open Liberty Operator, also supported by IBM Cloud Pak for Applications, to deploy and manage the modernized application.
 
 ### Application Management
 
