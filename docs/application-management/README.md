@@ -176,7 +176,7 @@ Enable serviceability option for the Customer Order Services application. In pro
 
 ```yaml 
 spec:
-    serviceability:
+  serviceability:
     volumeClaimName: liberty
 ```
 
