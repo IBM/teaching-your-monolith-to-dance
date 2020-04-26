@@ -45,7 +45,7 @@ Pod processes running in OpenShift frequently produce logs. To effectively manag
 
 ### Import dashboards
 
-1. Download [zip file](https://ibm.box.com/s/cf5epc01nuha0xdtvtqxf00ckhzzo0dy) containing dashboards to your computer and unzip to a local directory.
+1. Download [zip file](https://ibm.box.com/s/ppp7yc69e2r6o3mlm0xg5zpml5ma532z) containing dashboards to your computer and unzip to a local directory.
 
 1. Let's import dashboards for Liberty and WAS. From the left-panel, click on `Management`. Click on `Saved Objects` tab and then click on `Import`.
 
