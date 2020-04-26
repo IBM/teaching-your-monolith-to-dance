@@ -16,10 +16,27 @@ There are several approaches to application modernization and provided are key r
 
 - Monitor the applications easily using various dashboards available as part of IBM Cloud Pak for Applications. Identify potential problems using logging dashboards. Get insights into the performance of your applications using metrics dashboards. Perform Day-2 operations, such as gathering traces and dumps, to debug potential issues easily using Open Liberty Operator. Use Application Navigator to monitor and manage all your applications running on cloud and on-prem.
 
-### Workshop
+### Hands-on Workshop
+
+#### Pre-requisites
 
 - Basic knowledge about containers and Kubernetes is recommended. Completing the following hands-on labs will help you to easily navigate this workshop:
     - [Introduction to Containerization](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/HelloContainer)
     - [Introduction to Container Orchestration using Openshift](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift)
 
-- Please follow the [setup instructions](common/setup.md) to access the Red Hat OpenShift cluster on IBM Cloud required for the workshop.
+#### Setup
+
+- Please follow the [setup instructions](common/setup.md) to access the Red Hat OpenShift cluster on IBM Cloud required for the workshop. The cluster is already configured with the tools you need to be able to complete the labs.
+
+#### Labs
+
+You can proceed with the labs after obtaining an OpenShift cluster by completing the setup instructions above. The labs should be completed in the order they are listed below. A link is provided at the end of each lab to the next lab.
+
+- Lab 1: [Operational Modernization](operational-modernization/README.md)
+- Lab 2: [Runtime Modernization](runtime-modernization/README.md)
+- Lab 3: [Application Management](application-management/README.md).
+
+### Resources
+
+After completing the labs, checkout the next steps and additional resources available [here](resources.md) to continue your journey to cloud!
+
