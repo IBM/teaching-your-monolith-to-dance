@@ -20,13 +20,13 @@ There are several approaches to application modernization and provided are key r
 
 #### Pre-requisites
 
-- Basic knowledge about containers and Kubernetes is recommended. Completing the following hands-on labs will help you to easily navigate this workshop:
-    - [Introduction to Containerization](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/HelloContainer)
-    - [Introduction to Container Orchestration using Openshift](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift)
+Basic knowledge about containers and Kubernetes is recommended. Completing the following hands-on labs will help you to easily navigate this workshop:
+- [Introduction to Containerization](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/HelloContainer)
+- [Introduction to Container Orchestration using Openshift](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift)
 
 #### Setup
 
-- Please follow the [setup instructions](common/setup.md) to access the Red Hat OpenShift cluster on IBM Cloud required for the workshop. The cluster is already configured with the tools you need to be able to complete the labs.
+Please follow the [setup instructions](common/setup.md) to access the Red Hat OpenShift cluster on IBM Cloud required for the workshop. The cluster is already configured with the tools you need to be able to complete the labs.
 
 #### Labs
 
@@ -34,7 +34,7 @@ You can proceed with the labs after obtaining an OpenShift cluster by completing
 
 - Lab 1: [Operational Modernization](operational-modernization/README.md)
 - Lab 2: [Runtime Modernization](runtime-modernization/README.md)
-- Lab 3: [Application Management](application-management/README.md).
+- Lab 3: [Application Management](application-management/README.md)
 
 ### Resources
 
