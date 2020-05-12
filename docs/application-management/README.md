@@ -71,7 +71,7 @@ In Kibana console, from the left-panel, click on `Dashboard`. You'll see 3 dashb
 
 1. Scroll-up and click on the number below WARNING. Dashboard will change other panels to show just the events for warnings. Using this, you can determine: whether the failures occurred on one particular pod/server or in multiple instances, whether they occurred around the same or different time.
 
-1. Scroll-down to the actual warning messages. In this case some files from dojo were not found. These warnings should be fixed.
+1. Scroll-down to the actual warning messages. In this case some files from dojo were not found. Even though they are warnings, it'll be good to fix them by updating the application (we won't do that as part of this workshop).
 
 1. Go back to the list of dashboards and click on _Liberty-Traffic-K5-20191122_. This dashboard helps to identify failing or slow HTTP requests on Liberty applications.
 
@@ -82,7 +82,7 @@ In Kibana console, from the left-panel, click on `Dashboard`. You'll see 3 dashb
 1. Scroll-down to `Liberty Error Response Code Count` section which lists the number of requests failed with HTTP response codes in 400s and 500s ranges.
 
 1. Scroll-down to `Liberty Top URLs` which lists the most frequently accessed URLs
-    - The _/health_ and _/metrics_ endpoints are running on the same server and are queried frequently for probes and for scraping information. You can add a filter to include/exclude certain applications.
+    - The _/health_ and _/metrics_ endpoints are running on the same server and are queried frequently for readiness/liveness probes and for scraping metrics information. It's possible to add a filter to include/exclude certain applications.
 
 1. On the right-hand side, you'll see list of endpoints that had the slowest response times.
 
@@ -102,11 +102,12 @@ Building observability into applications externalizes the internal status of a s
 
 ### Grafana dashboard
 
-1. From the extracted dashboards directory on your computer, open `grafana` directory and then open `ibm-open-liberty-grafana5-cos-dashboard.yaml`. Copy its contents. This `GrafanaDashboard` custom resource defines a set of dashboards for Customer Order Services application and Open Liberty.
+1. Custom resource [GrafanaDashboard](https://github.com/IBM/teaching-your-monolith-to-dance/blob/liberty/deploy/grafana-dashboard-cos.yaml) defines a set of dashboards for monitoring Customer Order Services application and Open Liberty. In web terminal, run the following command to create the dashboard resource:
+    ```
+    oc create -f https://raw.githubusercontent.com/IBM/teaching-your-monolith-to-dance/liberty/deploy/grafana-dashboard-cos.yaml
+    ```
 
-1. In OpenShift concole, click on the `+` icon on the top panel to quickly create a resource. Paste the contents and click on `Create`.
-
-1. In OpenShift console, from the left-panel, select **Networking** > **Routes**.
+1. The following steps to access the created dashboard are illustrated in the screen recording at the end of this section: In OpenShift console, from the left-panel, select **Networking** > **Routes**.
 
 1. From the _Project_ drop-down list, select `app-monitoring`. 
 
@@ -130,7 +131,7 @@ Building observability into applications externalizes the internal status of a s
 
 1. Explore the other sections.
 
-    ![requesting server dump](extras/images/metrics-dashboard.gif)
+    ![requesting server dump](extras/images/monitoring-dashboard.gif)
 
 ## Day-2 Operations (bonus lab)
 
@@ -160,29 +161,27 @@ A storage must be configured so the generated artifacts can persist, even after 
 
 ### Enable serviceability
 
-Enable serviceability option for the Customer Order Services application. In productions systems, it's recommended that you do this step with the initial deployment of the application - not when you encounter an issue and need to gather server traces or dumps. OpenShift can not attach volumes to running Pods so it'll have to create a new Pod, attach the volume and then take down the old Pod. If the problem is intermittent or hard to reproduce, you may not be able to reproduce on the new instance of server running in the new Pod. The volume can be shared by all Liberty applications that are in the same namespace and the volumes wouldn't be used unless you perform day-2 operation on a particular application - so that should make it easy to enable serviceability with initial deployment.
+Enable serviceability option for the Customer Order Services application. In productions systems, it's recommended that you do this step with the initial deployment of the application - not when you encounter an issue and need to gather server traces or dumps. OpenShift can not attach volumes to running Pods so it'll have to create a new Pod, attach the volume and then take down the old Pod. If the problem is intermittent or hard to reproduce, you may not be able to reproduce it on the new instance of server running in the new Pod. The volume can be shared by all Liberty applications that are in the same namespace and the volumes wouldn't be used unless you perform day-2 operation on a particular application - so that should make it easy to enable serviceability with initial deployment.
 
-1. From the left-panel, click on **Operators** > **Installed Operators**.
+1. Specify the name of the storage request (Persistent Volume Claim) you made earlier using `spec.serviceability.volumeClaimName` parameter provided by `OpenLibertyApplication` custom resource. Open Liberty Operator will attach the volume bound to the claim to each instance of the server. In web terminal, run the following command:
 
-1. Ensure that `apps` is selected from the _Project_ drop-down list. 
+    ```
+    oc patch olapp cos -n apps --patch '{"spec":{"serviceability":{"volumeClaimName":"liberty"}}}' --type=merge
+    ```
 
-1. You should see `Open Liberty Operator` on the list. Click on `Open Liberty Application` (displayed under `Provided APIs` column).
+    Above command patches the definition of `olapp` (shortname for `OpenLibertyApplication`) instance `cos` in namespace `apps` (indicated by `-n` option). The `--patch` option specifies the content to patch with. In this case, we set the value of `spec.serviceability.volumeClaimName` field to `liberty`, which is the name of the Persistent Volume Claim you created earlier. The `--type=merge` option specifies to merge the previous content with newly specified field and its value.
 
-1. Click on the application named `cos` which you previously deployed.
+1. Run the following command to get the status of `cos` application, to verify that the changes were reconciled and there is no error:
 
-1. Click on the `YAML` tab.
+    ```
+    oc get olapp cos -n apps -o wide
+    ```
+    The value under `RECONCILED` column should be _True_. 
+    
+    _Note:_ If it's _False_ then an error occurred. The `REASON` and `MESSAGE` columns will display the cause of the failure. A common mistake is creating the Persistent Volume Claim in another namespace. Ensure that it is created in the `apps` namespace.
 
-1. Specify the storage request (Persistent Volume Claim) you made earlier to Open Liberty Operator and it will find the actual volume from the claim name. To avoid indentation issues, replace the line with `spec:` with the following YAML content:
 
-```yaml 
-spec:
-  serviceability:
-    volumeClaimName: liberty
-```
-
-1. Click on `Save`.
-
-1. From the left-panel, click on **Workloads** > **Pods**. Wait till the pod's _Readiness_ column changes to _Ready_.
+1. In OpenShift console, from the left-panel, click on **Workloads** > **Pods**. Wait till the pod's _Readiness_ column changes to _Ready_.
 
 1. Pod's name is needed for requesting server dump and trace in the next sections. Click on the pod and copy the value under `Name` field.
 
@@ -191,6 +190,8 @@ spec:
 ### Request server dump
 
 You can request a snapshot of the server status including different types of server dumps, from an instance of Open Liberty server running inside a Pod, using Open Liberty Operator and `OpenLibertyDump` custom resource (CR). 
+
+The following steps to request a server dump are illustrated in the screen recording below:
 
 1. From the left-panel, click on **Operators** > **Installed Operators**.
 
@@ -214,6 +215,8 @@ You can request a snapshot of the server status including different types of ser
 
 You can also request server traces, from an instance of Open Liberty server running inside a Pod, using `OpenLibertyTrace` custom resource (CR).
 
+The following steps to request a server trace are illustrated in the screen recording below:
+
 1. From the left-panel, click on **Operators** > **Installed Operators**.
 
 1. From the `Open Liberty Operator` row, click on `Open Liberty Trace`.
@@ -229,13 +232,15 @@ You can also request server traces, from an instance of Open Liberty server runn
 1. Click on `example-trace` from the list.
 
 1. Scroll-down to the `Conditions` section and you should see `Enabled` status with `True` value. 
-    - Note: Once the trace has started, it can be stopped by setting the `disable` parameter to true. Deleting the CR will also stop the tracing. Changing the `podName` will first stop the tracing on the old Pod before enabling traces on the new Pod. You can also specify the maximum trace file size and the maximum number of files before rolling over using `maxFileSize` and `maxFiles` parameters.
+    - _Note:_ Once the trace has started, it can be stopped by setting the `disable` parameter to true. Deleting the CR will also stop the tracing. Changing the `podName` will first stop the tracing on the old Pod before enabling traces on the new Pod. Maximum trace file size (in MB) and the maximum number of files before rolling over can be specified using `maxFileSize` and `maxFiles` parameters.
 
     ![requesting server trace](extras/images/day2-trace-operation.gif)
 
 ### Accessing the generated files
 
-1. The generated trace and dump files should now be in the persistent volume. You used storage from IBM Cloud and to access those files, we have to go through a number of steps using different tools. But since the volume is attached to the Pod, we can easily verify that those files are present using Pod's terminal.
+The generated trace and dump files should now be in the persistent volume. You used storage from IBM Cloud and we have to go through a number of steps using a different tool to access those files. Since the volume is attached to the Pod, we can instead use Pod's terminal to easily verify that trace and dump files are present.
+
+The following steps to access the files are illustrated in the screen recording below:
 
 1. From the left-panel, click on **Workloads** > **Pods**. Click on the pod and then click on `Terminal` tab. 
 
@@ -249,4 +254,4 @@ You can also request server traces, from an instance of Open Liberty server runn
 
 Congratulations! You've completed the workshop. Great job! A virtual "High Five" to you!
 
-Check out the [next steps](../resources.md) to continue your journey to cloud!
+Check out the [Next Steps](../resources.md) to continue your journey to cloud!

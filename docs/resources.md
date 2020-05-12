@@ -5,6 +5,8 @@
 
   - Review the detailed step-by-steps [instructions](operational-modernization/extras/WAS-analyze.md) on how [IBM Cloud Transformation Advisor](https://www.ibm.com/cloud/garage/practices/learn/ibm-transformation-advisor) was used to analyze existing Customer Order Services application (running in WebSphere ND environment) to move to traditional WAS Base in container.
 
+  - Check out the official Docker images for [Open Liberty](https://github.com/OpenLiberty/ci.docker) and [WebSphere Traditional Base](https://github.com/WASdev/ci.docker.websphere-traditional)
+
   - Check out the [Open Liberty guides](https://openliberty.io/guides/) on developing microservice with ease using MicroProfile. Each guide takes 15-30 minutes and at the end of it, you would've learned about a particular concept or technology!
 
  - Learn more about [IBM Cloud Pak for Applications](https://www.ibm.com/ca-en/cloud/cloud-pak-for-applications). Move from monolithic to microservices with DevOps methodologies and modernization toolkits. Modernize existing apps and build new cloud-native apps.

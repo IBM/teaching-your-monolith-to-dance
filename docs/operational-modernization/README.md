@@ -10,11 +10,7 @@ While traditional WebSphere isn't a 'built for the cloud' runtime like Liberty, 
 
 **This type of modernization shouldn't require any code changes** and can be driven by the operations team. **This path gets the application in to a container with the least amount of effort but doesn't modernize the application or the runtime.**
 
-As organizations modernize to cloud platforms, new technologies and methodologies will be used for build, deployment and management of applications. Using the traditional WebSphere container will allow common technologies and methodologies to be used regardless of the runtime.
-
 This repository holds a solution that is the result of an **operational modernization** for an existing WebSphere Java EE application that was moved from WebSphere ND v8.5.5 to the traditional WebSphere Base v9 container and is deployed by the IBM CloudPak for Applications to RedHat OpenShift.
-
-Note that various links to other resources are provided throughout the lab instructions. Only the instructions that explicitly asks to click on the link are mandatory for this workshop. Other links are for references and for you to explore after workshop.
 
 In this workshop, we'll use **Customer Order Services** application as an example. In order to modernize, the application will go through through **analysis**, **build** and **deploy** phases. Click [here](../common/application.md) and get to know the application, its architecture and components.
 
@@ -28,7 +24,7 @@ In this workshop, we'll use **Customer Order Services** application as an exampl
 
 ## Analysis
 
-[IBM Cloud Transformation Advisor](https://www.ibm.com/garage/method/practices/learn/ibm-transformation-advisor) helps you to analyze your on-premises workloads for modernization. It determines the complexity of your applications, estimates a development cost to perform the move to the cloud, and recommends the best target environment. It was used to analyze the existing Customer Order Services application running in the WebSphere ND environment. The steps taken were:
+IBM Cloud Transformation Advisor helps you to analyze your on-premises workloads for modernization. It determines the complexity of your applications, estimates a development cost to perform the move to the cloud, and recommends the best target environment. It was used to analyze the existing Customer Order Services application running in the WebSphere ND environment. The steps taken were:
 
 1. Used the IBM Cloud Transformation Advisor available as part of IBM Cloud Pak for Applications. Transformation Advisor Local (Beta) can also be used. 
 
@@ -40,15 +36,15 @@ In this workshop, we'll use **Customer Order Services** application as an exampl
 
 4. Analyzed the **Detailed Migration Analysis Report**. In summary, no code changes are required to move this application to the traditional WebSphere Base v9 runtime and the decision was to proceed with the operational modernization.
 
-**Homework**: After you complete this workshop, review the step-by-step instructions on how to replicate these steps from the [Next Steps](../resources.md) section. Then try Transformation Advisor with one of your applications.
+**Homework**: After you complete this workshop, review the step-by-step instructions on how to replicate these steps from the resources included in _Next Steps_ section. Then try Transformation Advisor with one of your applications.
 
 ## Build
 
 In this section, you'll learn how to build a Docker image for Customer Order Services application running on traditional WebSphere Base v9.
 
-Building this image could take around ~8 minutes (since the image is around 2GB and starting/stopping the WAS server as part of the build process takes few minutes). So let's kick that process off and then come back to learn what you did. The image will likely be built by the time you complete this section.
+Building this image could take around ~8 minutes (since the image is around 2GB and starting/stopping the WAS server as part of the build process takes few minutes). So let's kick that process off and then come back to learn what you did. The image will be built by the time you complete this section.
 
-1. You'll need the web terminal (the same one from lab setup). If it's not open, follow the instructions [here](../common/setup.md#access-the-web-terminal) to login to OpenShift cluster via the web terminal.
+1. You'll need the web terminal (the same one from lab setup). If it's not already open, follow the instructions [here](../common/setup.md#access-the-web-terminal) to login to OpenShift cluster via the web terminal.
 
 1. Clone the GitHub repo with the lab artifacts and list the files. Run the following commands on your web terminal:
     ```
@@ -63,7 +59,7 @@ Building this image could take around ~8 minutes (since the image is around 2GB 
     oc new-project apps-was
     ```
 
-1. Run the following command to start building the image. Make sure to copy the entire command, including the `"."` at the end (which indicates current directory). This command will be explained later in the `Build image` section. While the image is building continue with rest of the lab:
+1. Run the following command to start building the image. Make sure to copy the entire command, including the `"."` at the end (which indicates current directory). This command will be explained later in the _Build image_ section. While the image is building continue with rest of the lab:
     ```
     docker build --tag image-registry.openshift-image-registry.svc:5000/apps-was/cos-was .
     ```
@@ -128,7 +124,7 @@ COPY --chown=1001:0 app/CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear /work/apps/C
 RUN /work/configure.sh
 ```
 
-- The base image for our application image is `ibmcom/websphere-traditional`, which is the [official image](https://github.com/WASdev/ci.docker.websphere-traditional) for traditional WAS Base in container. The tag `9.0.5.0-ubi` indicates the version of WAS and that this image is based on Red Hat's Universal Base Image (UBI). We recommend using UBI images.
+- The base image for our application image is `ibmcom/websphere-traditional`, which is the official image for traditional WAS Base in container. The tag `9.0.5.0-ubi` indicates the version of WAS and that this image is based on Red Hat's Universal Base Image (UBI). We recommend using UBI images.
 
 - For security, traditional WebSphere Base containers run as non-root. This is infact a requirement for running certified containers in OpenShift. The `COPY` instruction by default copies as root. So change user and group using `--chown=1001:0` command.
 
@@ -224,13 +220,11 @@ The following steps will deploy the modernized Customer Order Services applicati
 
 Customer Order Services application uses DB2 as its database. You can connect to an on-prem database that already exists or migrate the database to cloud. Since migrating the database is not the focus of this particular workshop and to save time, the database needed by the application is already configured in the OpenShift cluster you are using.
 
-**Homework**: Learn about data modernization by checking out [IBM Cloud Pak for Data](https://www.ibm.com/ca-en/products/cloud-pak-for-data): a fully-integrated data and AI platform that modernizes how businesses collect, organize and analyze data and infuse AI throughout their organizations.
-
 ### Operator
 
 Operators are a method of packaging, deploying, and managing a Kubernetes application. Conceptually, Operators take human operational knowledge and encode it into software that is more easily shared with consumers. Essentially, Operators are pieces of software that ease the operational complexity of running another piece of software. They act like an extension of the software vendor’s engineering team, watching over a Kubernetes environment (such as OpenShift Container Platform) and using its current state to make decisions in real time.
 
-We'll use [Appsody Operator](https://github.com/appsody/appsody-operator/blob/master/doc/user-guide.md), available as part of IBM Cloud Pak for Applications, to deploy the application you containerized. Appsody Operator is capable of deploying any application image with consistent, production-grade Quality of service (QoS).
+We'll use Appsody Operator, available as part of IBM Cloud Pak for Applications, to deploy the application you containerized. Appsody Operator is capable of deploying any application image with consistent, production-grade Quality of service (QoS).
 
 [comment]: <> (Explain what an operator is and what Appsody Operator does specifically)
 
@@ -326,15 +320,14 @@ spec:
 
 1. Note that the URL, listed under the `Location` column, is in the format _application_name_-_project_name_._your_cluster_url
 
-1. Click on the Route URL. It's expected to get a message stating _SRVE0255E: A WebGroup/Virtual Host to handle / has not been defined_.
+1. Click on the Route URL. 
+    - Note: since there isn't an application served at server context root `/`, it's expected to get a message stating _SRVE0255E: A WebGroup/Virtual Host to handle / has not been defined_. 
 
 1. The username and password to login to the application are `skywalker` and `force` respectively. Add `/CustomerOrderServicesWeb` to the end of the URL in the browser to access the application. 
 
 1. Click on the `Account` tab to see user details. This information is retrieved from the database.
 
-1. From the `Shop` tab, add few items to the cart. Click on an item and then drag and drop the item into the shopping cart. Add at least 5 items to the cart.
-
-1. As the items are added, they'll be shown under _Current Shopping Cart_ (on the right side).
+1. From the `Shop` tab, add few items to the cart as illustrated in the screen recording below. Click on an item and then drag and drop the item into the shopping cart. Add at least 5 items to the cart. As the items are added, they'll be shown under _Current Shopping Cart_ (on the right side).
 
     ![Adding item to cart](extras/images/add-item-to-cart.gif)
 
