@@ -1,5 +1,14 @@
 # Application Management
 
+## Table of Contents
+
+- [Introduction](#introduction)
+- [IBM Application Navigator](#ibm-application-navigator) (Hands-on)
+- [Application Logging](#application-logging) (Hands-on)
+- [Application Monitoring](#application-monitoring) (Hands-on)
+- [Day-2 Operations (bonus lab)](#day-2-operations-bonus-lab) (Hands-on)
+- [Summary](#summary)
+
 ## Introduction
 
 In the previous labs, you learned to containerize and deploy modernized applications to OpenShift. In this section, you'll learn about managing your running applications efficiently using various tools available to you as part of IBM Cloud Pak for Applications.
@@ -248,7 +257,7 @@ The following steps to access the files are illustrated in the screen recording 
 
 1. Using Open Liberty Operator, you learned to perform day-2 operations on a Liberty server running inside a container, which is deployed to a Pod.
 
-    ![requesting server dump](extras/images/day2-files.gif)
+    ![day-2 files](extras/images/day2-files.gif)
 
 ## Summary
 

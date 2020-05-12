@@ -1,5 +1,14 @@
 # Runtime Modernization Solution
 
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Analysis](#analysis) (Reading)
+- [Build](#build) (Hands-on)
+- [Deploy](#deploy) (Hands-on)
+- [Access the Application](#access-the-application) (Hands-on)
+- [Summary](#summary)
+
 ## Introduction
 
 **Runtime modernization** moves an application to a 'built for the cloud' runtime with the least amount of effort. **Open Liberty** is a fast, dynamic, and easy-to-use Java application server. Ideal for the cloud, Liberty is open sourced, with fast startup times (<2 seconds), no server restarts to pick up changes, and a simple XML configuration.
@@ -10,15 +19,7 @@ Liberty however doesn't support all of the legacy Java EE and WebSphere propriet
 
 This repository holds a solution that is the result of a **runtime modernization** for an existing WebSphere Java EE application that was moved from WebSphere ND v8.5.5 to Liberty and deployed by the IBM CloudPak for Applications to RedHat OpenShift.
 
-We'll use the same [Customer Order Services application](../common/application.md) from the **Operational Modernization** lab as an example. In order to modernize the runtime, the application will go through through **analysis**, **build** and **deploy** phases.
-
-## Table of Contents
-
-- [Analysis](#analysis)
-- [Build](#build)
-- [Deploy](#deploy)
-- [Access the Application](#access-the-application)
-- [Summary](#summary)
+We'll use the same [Customer Order Services application](../common/application.md) from the **Operational Modernization** lab as an example. In order to modernize the runtime, the application will go through **analysis**, **build** and **deploy** phases.
 
 ## Analysis
 
@@ -63,7 +64,7 @@ cd teaching-your-monolith-to-dance
 ls
 ```
 
-Run the following command to start building the image. Make sure to copy the entire command, including the `"."` at the end. While the image is building, continue with rest of the lab:
+Run the following command to start building the image. Make sure to copy the entire command, including the `"."` at the end. While the image is building(takes ~3 minutes), continue with rest of the lab:
 
 ```
 docker build --tag image-registry.openshift-image-registry.svc:5000/apps/cos .
@@ -469,7 +470,14 @@ spec:
 
 1. Click on `Create OpenLibertyApplication` button.
 
-1. Delete the default template. Copy and paste the above `OpenLibertyApplication` custom resource (CR). Under `env` variables, replace the 3 instances of `ENTER_YOUR_ROUTER_HOSTNAME_HERE` (within the URLs) with the hostname of the router in your cluster. To get just the hostname, run command `oc get route -n keycloak -o yaml | grep Hostname | sed "s/^.*: //"` on web terminal and then copy the output value. The hostname is stored inside the route. Above command finds the line with hostname and retrieves its value. 
+1. Delete the default template. Copy and paste the above `OpenLibertyApplication` custom resource (CR). Under `env` variables, replace the 3 instances of `ENTER_YOUR_ROUTER_HOSTNAME_HERE` (within the URLs) with the hostname of the router in your cluster. To get just the hostname, run the following command in web terminal and then copy the output value:
+
+    ```
+    oc get route -n keycloak -o yaml | grep Hostname | sed "s/^.*: //"
+    ```
+
+    - The hostname is stored inside the route. Above command finds the line with hostname and retrieves its value.
+    - Example hostname value: _leojc-wug-cluster-c53a941250098acc3d804eba23ee3789-0000.tor01.containers.appdomain.cloud_ 
 
 1. Click on `Create` button.
 

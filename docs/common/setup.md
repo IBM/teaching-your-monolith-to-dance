@@ -2,6 +2,16 @@
 
 This section contains instructions to access the Red Hat OpenShift cluster on IBM Cloud required for the workshop. The cluster is already configured with the tools you need to be able to complete the labs.
 
+## Table of Contents
+
+- [Browser Requirement](#browser-requirement)
+- [IBM Cloud account](#ibm-cloud-account)
+- [Request cluster](#request-cluster)
+- [Access cluster](#access-cluster)
+- [Access the web terminal](#access-the-web-terminal)
+- [Login to OpenShift CLI](#login-to-openshift-cli)
+- [Summary](#summary)
+
 ## Browser Requirement
 
 - Make sure you are using a supported browser: Chrome or Firefox is recommended. Do not use Internet Explorer or Edge (various issues were observed with them).
@@ -39,7 +49,7 @@ You will be given a URL specific to your workshop (e.g. `https://<workshop name>
 
 - Click on _IBM Cloud account_ link. Note your assigned cluster name and ignore the bullet 5 which is not used in this workshop.
 
-## Access cluster 
+## Access cluster
 
 - If you haven't already, login to your IBM Cloud account: go to the [login page](https://cloud.ibm.com/login) and enter your IBMid and password.
 - Once logged in, ensure that the selected account is **2044184 - CP4AWorkshops**. If you don't see that account, try refreshing the webpage. If the account is still not shown then try logging out and logging back in. Contact workshop host if you still don't see that account.
@@ -109,8 +119,8 @@ The following steps to login to OpenShift CLI (command-line interface) using web
     ![oc login](images/oc-login.gif)
 
 
-Congratulations! You've completed the lab setup.
+## Summary
 
-## Next
+Congratulations! You've completed the lab setup.
 
 Check out the [pre-requisites](../README.md#pre-requisites) information.

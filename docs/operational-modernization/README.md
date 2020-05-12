@@ -1,5 +1,14 @@
 # Operational Modernization Solution
 
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Analysis](#analysis) (Reading)
+- [Build](#build) (Hands-on)
+- [Deploy](#deploy) (Hands-on)
+- [Access the Application](#access-the-application) (Hands-on)
+- [Summary](#summary)
+
 ## Introduction
 
 **Operational modernization** gives an operations team the opportunity to embrace modern operations best practices without putting change requirements on the development team. Modernizing from WebSphere Network Deployment (ND) to the **traditional WebSphere Application Server Base V9 runtime** in a container allows the application to be moved to the cloud without code changes.
@@ -12,15 +21,7 @@ While traditional WebSphere isn't a 'built for the cloud' runtime like Liberty, 
 
 This repository holds a solution that is the result of an **operational modernization** for an existing WebSphere Java EE application that was moved from WebSphere ND v8.5.5 to the traditional WebSphere Base v9 container and is deployed by the IBM CloudPak for Applications to RedHat OpenShift.
 
-In this workshop, we'll use **Customer Order Services** application as an example. In order to modernize, the application will go through through **analysis**, **build** and **deploy** phases. Click [here](../common/application.md) and get to know the application, its architecture and components.
-
-## Table of Contents
-
-- [Analysis](#analysis)
-- [Build](#build)
-- [Deploy](#deploy)
-- [Access the Application](#access-the-application)
-- [Summary](#summary)
+In this workshop, we'll use **Customer Order Services** application as an example. In order to modernize, the application will go through **analysis**, **build** and **deploy** phases. Click [here](../common/application.md) and get to know the application, its architecture and components.
 
 ## Analysis
 
@@ -59,7 +60,7 @@ Building this image could take around ~8 minutes (since the image is around 2GB 
     oc new-project apps-was
     ```
 
-1. Run the following command to start building the image. Make sure to copy the entire command, including the `"."` at the end (which indicates current directory). This command will be explained later in the _Build image_ section. While the image is building continue with rest of the lab:
+1. Run the following command to start building the image. Make sure to copy the entire command, including the `"."` at the end (which indicates current directory). This command will be explained later in the _Build image_ section. While the image is building (takes ~8 minutes) continue with rest of the lab:
     ```
     docker build --tag image-registry.openshift-image-registry.svc:5000/apps-was/cos-was .
     ```
