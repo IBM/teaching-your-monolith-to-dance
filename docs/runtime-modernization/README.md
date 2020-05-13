@@ -11,13 +11,13 @@
 
 ## Introduction
 
-**Runtime modernization** moves an application to a 'built for the cloud' runtime with the least amount of effort. **Open Liberty** is a fast, dynamic, and easy-to-use Java application server. Ideal for the cloud, Liberty is open sourced, with fast startup times (<2 seconds), no server restarts to pick up changes, and a simple XML configuration.
+**Runtime modernization** moves an application to a 'built for the cloud' runtime with the least amount of effort. **Open Liberty** is a fast, dynamic, and easy-to-use Java application server. Ideal for the cloud, Liberty is open sourced, with fast start-up times (<2 seconds), no server restarts to pick up changes, and a simple XML configuration.
 
 Liberty however doesn't support all of the legacy Java EE and WebSphere proprietary functionality and some code changes maybe required to move an existing application to the new runtime. Effort is also required to move the application configuration from traditional WebSphere to Liberty's XML configuration files.
 
 **This path gets the application on to a cloud-ready runtime container which is easy to use and portable. In addition to the necessary library changes, some aspects of the application was modernized. However, it has not been 'modernized' to a newer architecture such as micro-services**.
 
-This repository holds a solution that is the result of a **runtime modernization** for an existing WebSphere Java EE application that was moved from WebSphere ND v8.5.5 to Liberty and deployed by the IBM CloudPak for Applications to RedHat OpenShift.
+This repository holds a solution that is the result of a **runtime modernization** for an existing WebSphere Java EE application that was moved from WebSphere ND v8.5.5 to Liberty and deployed by the IBM Cloud Pak for Applications to RedHat OpenShift.
 
 We'll use the same [Customer Order Services application](../common/application.md) from the **Operational Modernization** lab as an example. In order to modernize the runtime, the application will go through **analysis**, **build** and **deploy** phases.
 
@@ -39,9 +39,9 @@ As before, IBM Cloud Transformation Advisor was used to analyze the existing Cus
 
   ![JPA](extras/images/liberty-analyze/severe.jpg)
 
-- **Behavior change on lookups for Enterprise JavaBeans** In Liberty, EJB components are not bound to a server root Java Naming and Directory Interface (JNDI) namespace as they are in WebSphere Application Server traditional. The fix for this is to change the three classes that use `ejblocal` to use the correct URL for Liberty
+- **Behaviour change on lookups for Enterprise JavaBeans**: In Liberty, EJB components are not bound to a server root Java Naming and Directory Interface (JNDI) namespace as they are in WebSphere Application Server traditional. The fix for this is to change the three classes that use `ejblocal` to use the correct URL for Liberty
 
-- **The user of system provided Apache Wink APIs requires configuration** To use system-provided third-party APIs in Liberty applications, you must configure the applications to include the APIs. In WebSphere Application Server traditional, these APIs are available without configuration. This is a configuration only change and can be achieved by using a `classloader` definition in the Liberty server.xml file.
+- **The user of system provided Apache Wink APIs requires configuration**: To use system-provided third-party APIs in Liberty applications, you must configure the applications to include the APIs. In WebSphere Application Server traditional, these APIs are available without configuration. This is a configuration only change and can be achieved by using a `classloader` definition in the Liberty server.xml file.
 
 - In summary, some minimal code changes were required to move this application to the Liberty runtime and the decision was taken to proceed with these code changes.
 
@@ -110,7 +110,7 @@ We updated the application to use a token-based authentication mechanism to auth
 
 The application will have to run on many different environments. So it's important to avoid hardcoding environment specific values in your code. Otherwise, you'll have to update code, recompile and containerize it frequently. 
 
-MicroProfile Config separates the configuration from code. You can inject the external configuration into services in the containers without repackaging them. Applications can use MicroProfile Config as a single API to retrieve configuration information from different sources such as system properties, system environment variables, properties files, XML files, or data sources. Of course, you can do all this by yourself, but it'll be a lot of work and code. Add few MicroProfile Config annotations and you'll make your life easier and code alot cleaner.
+MicroProfile Config separates the configuration from code. You can inject the external configuration into services in the containers without repackaging them. Applications can use MicroProfile Config as a single API to retrieve configuration information from different sources such as system properties, system environment variables, properties files, XML files, or data sources. Of course, you can do all this by yourself, but it'll be a lot of work and code. Add few MicroProfile Config annotations and you'll make your life easier and code a lot cleaner.
 
 We used MicroProfile Config to [inject information](https://github.com/IBM/teaching-your-monolith-to-dance/blob/6e197f03b8663813ba806b6f321cb9e5ce92c6f6/app/CustomerOrderServicesWeb/src/org/pwte/example/resources/JWTConfigResource.java#L21) about the application's authenticator (Keycloak in this case). For example, added these 3 lines and at runtime the variable will automatically get the value injected by MicroProfile Config:
 
@@ -124,7 +124,7 @@ We used MicroProfile Config to [inject information](https://github.com/IBM/teach
 
 In the last lab, we used `/CustomerOrderServicesWeb/index.html` for readiness and liveness probes, which is not the best indication that application is ready to handle traffic or is healthy to process requests correctly within a reasonable amount of time. What if the database is down? What if application's security layer is not yet ready/unable to handle authentication? The Pod would still be considered ready and healthy and traffic would still be sent to it. All of those requests will fail or would queue up - leading to bigger problems.
 
-MicroProfile Health provides a common REST endpoint format to determine whether a microservice (or in our case a monolith application) is healthy or not. Health can be determined by the service itself and might be based on the availability of necessary resources (for example, a database) and services. The service itself might be running but considered unhealthly if the things it requires for normal operation are unavailable. All of the checks are performed periodically and the result is served as a simple UP or DOWN at `/health/ready` and `/health/live` which can be used for readiness and liveness probes.
+MicroProfile Health provides a common REST endpoint format to determine whether a microservice (or in our case a monolith application) is healthy or not. Health can be determined by the service itself and might be based on the availability of necessary resources (for example, a database) and services. The service itself might be running but considered unhealthy if the things it requires for normal operation are unavailable. All of the checks are performed periodically and the result is served as a simple UP or DOWN at `/health/ready` and `/health/live` which can be used for readiness and liveness probes.
 
 We implemented the following health checks:
 - [ReadinessCheck](https://github.com/IBM/teaching-your-monolith-to-dance/blob/6e197f03b8663813ba806b6f321cb9e5ce92c6f6/app/CustomerOrderServicesWeb/src/org/pwte/example/health/ReadinessCheck.java#L17): Keycloak is required to authenticate users. Application should only accept traffic if Keycloak client is up and running.
@@ -172,7 +172,7 @@ MicroProfile Metrics is used to gather metrics about the time it takes to add an
 
 ### Liberty server configuration
 
-The Liberty runtime configuration file `server.xml`was created from the template provided by IBM Cloud Transformation Advisor. Have a look at the final version of the file available [here](https://github.com/IBM/teaching-your-monolith-to-dance/tree/liberty/config/server.xml).
+The Liberty runtime configuration file `server.xml` was created from the template provided by IBM Cloud Transformation Advisor. Have a look at the final version of the file available [here](https://github.com/IBM/teaching-your-monolith-to-dance/tree/liberty/config/server.xml).
 
   - The necessary features, including those for MicroProfile, are enabled (e.g. `jdbc-4.2, jaxrs-2.1, mpHealth-2.1`).
 
@@ -185,7 +185,7 @@ The Liberty runtime configuration file `server.xml`was created from the template
 
   - Application with appropriate security role and classloader visibility is specified by `application` element.
 
-  - Database is configured using the `dataSource` element. Note that Liberty variables are used for certain attributes (e.g. `serverName="${DB_HOST}"`). This will allow the containerized application to be deployed to different environments (e.g production database vs testing database).
+  - Database is configured using the `dataSource` element. Note that Liberty variables are used for certain attributes (e.g. `serverName="${DB_HOST}"`). This will allow the containerized application to be deployed to different environments (e.g. production database vs testing database).
 
   - The configuration to process the MicroProfile JWT token is defined using `mpJWT` element.
 
@@ -220,7 +220,7 @@ The `Dockerfile` required to build the immutable image containing the applicatio
 
   - Copy everything that the application needs into the container including the necessary db2 drivers.
   
-  - For security, Liberty containers run as non-root. This is infact a requirement for running certified containers in OpenShift. The `COPY` instruction by default copies as root. So change user and group using `--chown=1001:0` command.
+  - For security, Liberty containers run as non-root. This is in fact a requirement for running certified containers in OpenShift. The `COPY` instruction by default copies as root. So change user and group using `--chown=1001:0` command.
 
   - Next, copy Liberty's configuration file `server.xml`.
 
@@ -262,7 +262,7 @@ Before we push the image to OpenShift's internal image registry, create a separa
 
 Go back to web terminal. 
 
-Push the image to OpenShift's internal image registry, which could take upto a minute:
+Push the image to OpenShift's internal image registry, which could take up to a minute:
 
 ```
 docker push image-registry.openshift-image-registry.svc:5000/apps/cos
@@ -365,7 +365,7 @@ type: Opaque
 
 Note that the first `Secret` provides the credentials in base64 encoded format using the `data` field. The second one provides in plain text using `stringData` field. OpenShift will automatically convert the credentials to base64 format and place the information under `data` field. Click on the `YAML` tab of `liberty-creds` secret. The `data` field should contain the credentials in encoded form.
 
-As anyone can decode the credentials, administrators should ensure that only autenticated users have access to `Secrets` using Role-based access control (RBAC).
+As anyone can decode the credentials, administrators should ensure that only authenticated users have access to `Secrets` using Role-based access control (RBAC).
 
 You've completed the pre-requisite steps for deploying the application. 
 
@@ -449,7 +449,7 @@ spec:
 
 - Secured service and route are configured with necessary certificates.
 
-- Environment variables have been defined to be passed on to the running container. Information for the Keycloak client you setup previously is specified using environment variables (e.g `SSO_REALM`). Before deploying, you'll replace `ENTER_YOUR_ROUTER_HOSTNAME_HERE` (within the URLs) with the hostname of the router in your cluster.
+- Environment variables have been defined to be passed on to the running container. Information for the Keycloak client you setup previously is specified using environment variables (e.g. `SSO_REALM`). Before deploying, you'll replace `ENTER_YOUR_ROUTER_HOSTNAME_HERE` (within the URLs) with the hostname of the router in your cluster.
 
 - The host of the database is specified using its _Service_ address `cos-db-liberty.db.svc` and its credentials are passed in using the _Secret_ `db-creds` you created earlier. The `envFrom` parameter is used to define all of the Secret’s data as environment variables. The key from the _Secret_ becomes the environment variable name.
 

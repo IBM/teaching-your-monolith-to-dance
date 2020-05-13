@@ -2,11 +2,11 @@
 
 Application modernization is a journey of moving existing applications to a more modern cloud-native infrastructure.
 
-There are several approaches to application modernization and provided are key reference implementations to help you on your modernization jourey.
+There are several approaches to application modernization and provided are key reference implementations to help you on your modernization journey.
 
 ### Operational Modernization
 
-- Repackage the application to deploy within a container but maintaining a monolith application without changes to the application or runtime. This solution uses Appsody Operator, supported by IBM Cloud Pak for Applications, to deploy and manage the containarized application on Red Hat OpenShift.
+- Repackage the application to deploy within a container but maintaining a monolith application without changes to the application or runtime. This solution uses Appsody Operator, supported by IBM Cloud Pak for Applications, to deploy and manage the containerized application on Red Hat OpenShift.
 
 ### Runtime Modernization
 

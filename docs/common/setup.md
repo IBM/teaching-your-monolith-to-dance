@@ -23,8 +23,8 @@ If you already have an IBM Cloud account, go to the [login page](https://cloud.i
 Otherwise, sign up for an IBM Cloud account by using your existing IBMid or by creating a new IBMid:
 - Go to the [IBM Cloud login page](https://cloud.ibm.com), and click **Create an account**.
 - Enter your IBMid email address. If you don't have an existing IBMid, an ID will be created based on the email that you enter.
-- Enter a password, and click **Next**.
-- Verify the email. If you don't receive an email within few minutes then check spam folder.
+- Enter a password and click **Next**.
+- Verify the email. If you don't receive an email within few minutes, then check spam folder.
 - Complete account creation by providing requested information.
 - **Note**: If your IBMid is not with email pattern (e.g., a shortname), please inform the workshop host and a cluster will be assigned manually. Skip the 'Request cluster` section and continue from [Access cluster](#access-cluster) section.
 
@@ -43,7 +43,7 @@ You will be given a URL specific to your workshop (e.g. `https://<workshop name>
 
   ![Workshop assignment](images/Initial.jpg)
 
-- After submitting successfully, the _Congratuations_ page similar to the following should be displayed:
+- After submitting successfully, the _Congratulations_ page similar to the following should be displayed:
 
   ![Workshop cluster assigned](images/assignment.jpg)
 
@@ -52,7 +52,7 @@ You will be given a URL specific to your workshop (e.g. `https://<workshop name>
 ## Access cluster
 
 - If you haven't already, login to your IBM Cloud account: go to the [login page](https://cloud.ibm.com/login) and enter your IBMid and password.
-- Once logged in, ensure that the selected account is **2044184 - CP4AWorkshops**. If you don't see that account, try refreshing the webpage. If the account is still not shown then try logging out and logging back in. Contact workshop host if you still don't see that account.
+- Once logged in, ensure that the selected account is **2044184 - CP4AWorkshops**. If you don't see that account, try refreshing the webpage. If the account is still not shown, then try logging out and logging back in. Contact workshop host if you still don't see that account.
 
   ![CP4Apps Account](images/CP4AppsAccount.jpg)
 
@@ -64,14 +64,14 @@ You will be given a URL specific to your workshop (e.g. `https://<workshop name>
 
   ![clusters](images/Clusters.jpg)
 
-- Click `Openshift web console` to get access to the console of your cluster.
+- Click `OpenShift web console` to get access to the console of your cluster.
 - Ignore the `IBM Cloud Shell` button for now. It gives you a command line terminal to interact with IBM cloud, and may be used for a future lab.
  
   ![console](images/Console.jpg)
 
 ## Access the web terminal
 
-The web terminal runs in your Openshift cluster. It gives you command line access to many tools you will use in the workshop. 
+The web terminal runs in your OpenShift cluster. It gives you command line access to many tools you will use in the workshop. 
 
 The following steps to access the web terminal are illustrated in the screen recording below:
 
@@ -94,7 +94,7 @@ The following steps to access the web terminal are illustrated in the screen rec
 
 The following steps to login to OpenShift CLI (command-line interface) using web terminal are illustrated in the screen recording below:
 
-1. From the Openshift console, click on the twisty next to your login name and select `Copy Login Command`.
+1. From the OpenShift console, click on the twisty next to your login name and select `Copy Login Command`.
 
 1. In the new window that pops up, click on `Display Token`:
 
