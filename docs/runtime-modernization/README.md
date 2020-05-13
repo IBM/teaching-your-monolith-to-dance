@@ -346,7 +346,7 @@ Let's create the secret for Liberty using the OpenShift command-line interface (
 In web terminal, run the following command:
 
   ```
-  oc create -f https://raw.githubusercontent.com/IBM/teaching-your-monolith-to-dance/liberty/deploy/secret-liberty-creds.yaml
+  oc apply -f https://raw.githubusercontent.com/IBM/teaching-your-monolith-to-dance/liberty/deploy/secret-liberty-creds.yaml
   ```
 
 The `-f` option can specify a file, directory or a URL (as in this case) to use to create the resource. This is the content of the file referenced above:
