@@ -493,6 +493,11 @@ spec:
 
 1. Wait until the `Status` column displays _Running_ and `Readiness` column displays _Ready_. These indicate that the application within the container is running and is ready to handle traffic.
 
+1. In OpenShift console, from the left-panel, select **Networking** > **Routes**. Ensure that `apps` is selected from the _Project_ drop-down list. You should see the _Route_ named `cos`. As shown in the screen recording below, click on the menu option on the right-side and click on `Delete Route`. On the prompt, click on `Delete` to confirm. You will see that the Route is deleted. But within a split second, another instance of the Route is created. 
+
+    ![delete route](extras/images/delete-route.gif)
+
+    Open Liberty Operator monitors the resources it creates and takes necessary actions if they are not in the desired state you defined in `OpenLibertyApplication` CR. In this case, you requested to expose your application outside the cluster by setting `expose: true` and the operator created the Route resource to achieve that. When it detected that the Route resource was deleted, it instantly created another one. Open Liberty Operator acts as a guardian angel, always watching over your application. Awesome, isn't it?
 
 ### Complete Keycloak setup
 
@@ -515,7 +520,7 @@ spec:
 
 ### Access the application
 
-1. Go back to OpenShift console. In the **Routes** section, ensure that `apps` is selected from the _Project_ drop-down list and click on the route URL for the application.
+1. Click on the route URL for the application.
 
 1. Add `/CustomerOrderServicesWeb` to the end of the URL.
 
@@ -537,5 +542,7 @@ spec:
 Congratulations! You've completed the second section of the workshop! 
 
 This application has been modified from the initial WebSphere ND v8.5.5 version to run on modern & cloud-native runtime Open Liberty and deployed by IBM Cloud Pak for Applications to RedHat OpenShift.
+
+Do you see the application dancing and busting some moves? How about that moonwalk?
 
 Let's continue with the workshop. Head over to the [Application Management lab](../application-management/README.md).

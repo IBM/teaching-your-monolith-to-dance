@@ -45,14 +45,18 @@ Pod processes running in OpenShift frequently produce logs. To effectively manag
 
 1. Click on `Log in with OpenShift`. Click on `Allow selected permissions`.
 
-1. In Kibana console, from the left-panel, click on `Management`.
+1. The following steps are illustrated  in the screen recording at the end of this section. In Kibana console, from the left-panel, click on `Management`.
 
 1. Click on `Index Patterns`. Click on `project.*`. 
     - This index contains only a set of default fields and does not include all of the fields from the deployed application’s JSON log object. Therefore, the index needs to be refreshed to have all the fields from the application’s log object available to Kibana. 
 
 1. Click on the refresh icon and then click on `Refresh fields`.
 
+    ![refresh index patterns](extras/images/refresh-index-patterns.gif)
+
 ### Import dashboards
+
+The following steps to import dashboards into Kibana are illustrated  in the screen recording at the end of this section:
 
 1. Download [zip file](https://ibm.box.com/s/ppp7yc69e2r6o3mlm0xg5zpml5ma532z) containing dashboards to your computer and unzip to a local directory.
 
@@ -62,11 +66,15 @@ Pod processes running in OpenShift frequently produce logs. To effectively manag
 
 1. Repeat the steps to import `ibm-open-liberty-kibana5-traffic-dashboard.json` and `ibm-websphere-traditional-kibana5-dashboard.json`.
 
+    ![import Kibana dashboards](extras/images/import-kibana-dashboards.gif)
+
 ### Explore dashboards
 
 In Kibana console, from the left-panel, click on `Dashboard`. You'll see 3 dashboards on the list. The first 2 are for Liberty. The last one is for WAS traditional. Read the description next to each dashboard.
 
 #### Liberty applications
+
+The following steps to visualize problems with applications are illustrated  in the screen recording below:
 
 1. Click on _Liberty-Problems-K5-20191122_. This dashboard visualizes message, trace and FFDC information from Liberty applications.
 
@@ -82,7 +90,9 @@ In Kibana console, from the left-panel, click on `Dashboard`. You'll see 3 dashb
 
 1. Scroll-down to the actual warning messages. In this case some files from dojo were not found. Even though they are warnings, it'll be good to fix them by updating the application (we won't do that as part of this workshop).
 
-1. Go back to the list of dashboards and click on _Liberty-Traffic-K5-20191122_. This dashboard helps to identify failing or slow HTTP requests on Liberty applications.
+    ![Liberty problems dashboard](extras/images/liberty-problems-dashboard.gif)
+
+1. The following steps to visualize traffic to applications are illustrated  in the screen recording at the end of this section: Go back to the list of dashboards and click on _Liberty-Traffic-K5-20191122_. This dashboard helps to identify failing or slow HTTP requests on Liberty applications.
 
 1. As before, adjust the time-range as necessary if no data is rendered.
 
@@ -96,6 +106,8 @@ In Kibana console, from the left-panel, click on `Dashboard`. You'll see 3 dashb
 1. On the right-hand side, you'll see list of endpoints that had the slowest response times.
 
 1. Scroll-up and click on the number listed below 400s. Dashboard will change other panels to show just the traffic with response code in 400s. You can see the timeline and the actual messages below. These are related to warnings from last dashboard about dojo files not being found (response code 404).
+
+    ![Liberty traffic dashboard](extras/images/liberty-traffic-dashboard.gif)
 
 #### Traditional WebSphere applications
 
@@ -172,7 +184,7 @@ A storage must be configured so the generated artifacts can persist, even after 
 
 Enable serviceability option for the Customer Order Services application. In productions systems, it's recommended that you do this step with the initial deployment of the application - not when you encounter an issue and need to gather server traces or dumps. OpenShift cannot attach volumes to running Pods so it'll have to create a new Pod, attach the volume and then take down the old Pod. If the problem is intermittent or hard to reproduce, you may not be able to reproduce it on the new instance of server running in the new Pod. The volume can be shared by all Liberty applications that are in the same namespace and the volumes wouldn't be used unless you perform day-2 operation on a particular application - so that should make it easy to enable serviceability with initial deployment.
 
-1. Specify the name of the storage request (Persistent Volume Claim) you made earlier using `spec.serviceability.volumeClaimName` parameter provided by `OpenLibertyApplication` custom resource. Open Liberty Operator will attach the volume bound to the claim to each instance of the server. In web terminal, run the following command:
+1. Specify the name of the storage request (Persistent Volume Claim) you made earlier to `spec.serviceability.volumeClaimName` parameter provided by `OpenLibertyApplication` custom resource. Open Liberty Operator will attach the volume bound to the claim to each instance of the server. In web terminal, run the following command:
 
     ```
     oc patch olapp cos -n apps --patch '{"spec":{"serviceability":{"volumeClaimName":"liberty"}}}' --type=merge

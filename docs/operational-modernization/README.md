@@ -334,6 +334,6 @@ spec:
 
 ## Summary
 
-Awesome! You containerized and deployed a monolith application to cloud! You've completed the first section of the workshop.
+Awesome! You've completed the first lab of the workshop. You containerized and deployed a monolith application to cloud! Do you see that it has started to "dance"? It can do better.
 
 Let's continue with the workshop. Head over to the [Runtime Modernization lab](../runtime-modernization/README.md).
