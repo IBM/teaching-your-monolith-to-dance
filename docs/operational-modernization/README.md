@@ -308,7 +308,9 @@ spec:
 
 1. Click on `Pods` tab. 
 
-1. Wait until the `Status` column displays _Running_ and `Readiness` column displays _Ready_. It may take 1-2 minutes. These indicate that the application within the container is running and is ready to handle traffic.
+1. Wait until the `Status` column displays _Running_ and `Readiness` column displays _Ready_ (as shown in the screenshot below). It may take 1-2 minutes. These indicate that the application within the container is running and is ready to handle traffic. 
+
+    _Troubleshoot_: : If you see the Pod with a status of `ImagePullBackOff` or `ErrImagePull` (instead of the expected `Running` status) then an intermittent error has occurred. Try deleting the Pod. Click on the menu option on the right-side of where the pod is listed and click on `Delete Pod`. On the prompt, click on `Delete` to confirm. You will see that the old Pod will be terminating as another Pod is created. If you encounter the same issue with the new Pod, please inform the host to get help.
 
     ![Dev Running](extras/images/pod-status.png)
 

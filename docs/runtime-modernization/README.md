@@ -262,6 +262,12 @@ Before we push the image to OpenShift's internal image registry, create a separa
 
 Go back to web terminal. 
 
+Login to the image registry again by running the following command in web terminal:
+
+```
+docker login -u openshift -p $(oc whoami -t) image-registry.openshift-image-registry.svc:5000
+```
+
 Push the image to OpenShift's internal image registry, which could take up to a minute:
 
 ```

@@ -202,7 +202,7 @@ Enable serviceability option for the Customer Order Services application. In pro
     _Note:_ If it's _False_ then an error occurred. The `REASON` and `MESSAGE` columns will display the cause of the failure. A common mistake is creating the Persistent Volume Claim in another namespace. Ensure that it is created in the `apps` namespace.
 
 
-1. In OpenShift console, from the left-panel, click on **Workloads** > **Pods**. Wait till the pod's _Readiness_ column changes to _Ready_.
+1. In OpenShift console, from the left-panel, click on **Workloads** > **Pods**. Wait until there is only 1 pod on the list and its _Readiness_ column changed to _Ready_.
 
 1. Pod's name is needed for requesting server dump and trace in the next sections. Click on the pod and copy the value under `Name` field.
 
