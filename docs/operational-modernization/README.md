@@ -45,7 +45,9 @@ In this section, you'll learn how to build a Docker image for Customer Order Ser
 
 Building this image could take around ~8 minutes (since the image is around 2GB and starting/stopping the WAS server as part of the build process takes few minutes). So, let's kick that process off and then come back to learn what you did. The image will be built by the time you complete this section.
 
-1. You'll need the web terminal (the same one from lab setup). If it's not already open, follow the instructions [here](../common/setup.md#access-the-web-terminal) to login to OpenShift cluster via the web terminal.
+1. You'll need the web terminal (the same one from lab setup). If it's not already open, follow the instructions [here](../common/setup.md#access-the-web-terminal) to access the web terminal.
+
+1. You also need to be logged into the OpenShift CLI (command-line interface) using web terminal. Follow the instructions [here](../common/setup.md#login-to-openshift-cli) to login to OpenShift CLI.
 
 1. Clone the GitHub repo with the lab artifacts and list the files. Run the following commands on your web terminal:
     ```
