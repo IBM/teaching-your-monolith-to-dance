@@ -54,7 +54,9 @@ In this section, you'll learn how to build a Docker image for Customer Order Ser
 
 Building this image could take around ~3 minutes (multi-stage build that compiles the code, which takes extra time). As before, let's kick that process off and then come back to learn what you did.
 
-You'll need the web terminal (same as the one from previous lab). If it's not open, follow the instructions [here](../common/setup.md#access-the-web-terminal) to login to OpenShift cluster via the web terminal.
+You'll need the web terminal (same as the one from previous lab). If it's not open, follow the instructions [here](../common/setup.md#access-the-web-terminal) to access the web terminal.
+
+You also need to be logged into the OpenShift CLI (command-line interface) using web terminal. Follow the instructions [here](../common/setup.md#login-to-openshift-cli) to login to OpenShift CLI.
 
 Clone the GitHub repo with the lab artifacts for Liberty (these are different from the artifacts cloned in last lab). Run the following commands on your web terminal:
 ```
